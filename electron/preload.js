@@ -32,6 +32,58 @@ const { ipcRenderer } = require('electron');
 })();
 
 // ---------------------------------------------------------------------------
+// 会议页（/webrtc）：无边框窗口下，顶部 32px 作为窗口拖动区（替代标题栏）
+// ---------------------------------------------------------------------------
+(() => {
+  if (!location.pathname.startsWith('/webrtc')) return;
+  let chrome = 'normal';
+  try { chrome = ipcRenderer.sendSync('window:chrome'); } catch { chrome = 'normal'; }
+  if (chrome !== 'frameless') return;
+
+  injectCss(`
+    html { padding-top: 32px !important; box-sizing: border-box !important; }
+    #yx-dragbar {
+      position: fixed; left: 0; right: 0; top: 0; height: 32px; z-index: 2147483646;
+      display: flex; align-items: center; justify-content: space-between;
+      background: #101114; color: #b9bcc2;
+      font: 12px/1 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-app-region: drag; app-region: drag;
+      user-select: none;
+    }
+    #yx-dragbar .yx-drag-title { padding-left: 12px; letter-spacing: .5px; opacity: .8; }
+    #yx-dragbar .yx-drag-btns { display: flex; gap: 2px; padding-right: 6px;
+      -webkit-app-region: no-drag; app-region: no-drag; }
+    #yx-dragbar button {
+      width: 30px; height: 24px; border: 0; border-radius: 4px;
+      background: transparent; color: #b9bcc2; cursor: pointer; font-size: 13px;
+    }
+    #yx-dragbar button:hover { background: rgba(255,255,255,.12); color: #fff; }
+    #yx-dragbar button.yx-close:hover { background: #e5484d; color: #fff; }
+  `);
+
+  const bar = document.createElement('div');
+  bar.id = 'yx-dragbar';
+  bar.innerHTML = '<span class="yx-drag-title">移动会议</span>'
+    + '<span class="yx-drag-btns">'
+    + '<button type="button" class="yx-min" title="最小化">—</button>'
+    + '<button type="button" class="yx-close" title="关闭">✕</button>'
+    + '</span>';
+  const mount = () => {
+    if (!document.body) return false;
+    if (!document.getElementById('yx-dragbar')) document.body.appendChild(bar);
+    return true;
+  };
+  if (!mount()) document.addEventListener('DOMContentLoaded', mount, { once: true });
+
+  bar.querySelector('.yx-close').addEventListener('click', () => {
+    try { ipcRenderer.send('meeting:close'); } catch { /* 忽略 */ }
+  });
+  bar.querySelector('.yx-min').addEventListener('click', () => {
+    try { ipcRenderer.send('meeting:minimize'); } catch { /* 忽略 */ }
+  });
+})();
+
+// ---------------------------------------------------------------------------
 // 深色模式：用 darkreader 跟随系统（preload 里直接 require）
 //   DARK_READER=0 可关闭；会议页（/webrtc）不套，避免影响视频和会议 UI
 // ---------------------------------------------------------------------------

@@ -648,6 +648,51 @@ if (isShareUrl(url)) {
 
 关闭：`CLIP_WATCH=0 npm start`；改间隔：`CLIP_INTERVAL_MS=3000`。
 
+## 会议页无边框 + 32px 拖动条
+
+Electron 的 `frame` **只能在创建窗口时决定**，运行时切不了。所以会议页单独开一个无边框窗口：
+
+```js
+meetingWin = new BrowserWindow({
+  frame: false,          // 无系统标题栏
+  minWidth: 1024, minHeight: 640,
+  ...
+});
+framelessWindows.add(meetingWin.webContents.id);
+```
+
+主窗口里任何跳到 `/webrtc` 的导航都会被拦下来，改在会议窗里打开：
+
+```js
+if (contents === win.webContents && /conf\.125339\.com\.cn\/webrtc/.test(url)) {
+  event.preventDefault();
+  openMeetingWindow(url);
+}
+```
+
+页面顶部由 preload 注入 32px 拖动条（仅无边框窗口注入，用 `window:chrome` 询问主进程）：
+
+```css
+#yx-dragbar {
+  position: fixed; left: 0; right: 0; top: 0; height: 32px;
+  -webkit-app-region: drag; app-region: drag;      /* 拖动窗口 */
+}
+#yx-dragbar .yx-drag-btns { -webkit-app-region: no-drag; }  /* 按钮可点 */
+html { padding-top: 32px; box-sizing: border-box; }        /* 页面内容让出 32px */
+```
+
+拖动条右端还有「最小化 / 关闭」两个按钮（`no-drag`），补上标题栏缺的功能。
+
+实测：
+
+```
+[meeting-win] 新建无边框会议窗口 #2 https://conf.125339.com.cn/webrtc/
+[test] 会议页状态: {"bar":true,"padTop":"32px","dragBarRect":{"h":32,"y":0}}
+[test] 窗口 #1 1280x820 可见=true url=.../conference-list      ← 主窗口留在门户
+[meeting-win] 点击关闭按钮
+[test] 关闭后窗口: ["1:true"]                                   ← 会议窗关闭，主窗回归
+```
+
 ## 深色模式：Dark Reader 跟随系统
 
 用 [`darkreader`](https://www.npmjs.com/package/darkreader) 而不是自己写 CSS 反色：

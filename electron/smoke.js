@@ -258,6 +258,43 @@ async function runSmoke(ctx, dir) {
     return app.quit();
   }
 
+  if (process.env.SMOKE_MEETINGWIN) {
+    await sleep(11000);
+    // 模拟门户跳转到会议页：应改开无边框窗口
+    await win.webContents.executeJavaScript(`location.href = 'https://conf.125339.com.cn/webrtc/'`).catch(() => {});
+    await sleep(6000);
+    for (const w of BrowserWindow.getAllWindows()) {
+      const b = w.getBounds();
+      console.log(`[test] 窗口 #${w.id} ${b.width}x${b.height} 可见=${w.isVisible()} url=${w.webContents.getURL().slice(0, 60)}`);
+      if (w.webContents.getURL().includes('/webrtc')) {
+        const st = await w.webContents.executeJavaScript(`JSON.stringify({
+          bar: !!document.getElementById('yx-dragbar'),
+          padTop: getComputedStyle(document.documentElement).paddingTop,
+          dragBarRect: (() => { const el = document.getElementById('yx-dragbar'); if (!el) return null; const r = el.getBoundingClientRect(); return {h: r.height, y: r.y}; })(),
+        })`).catch((e) => 'ERR ' + e.message);
+        console.log('[test] 会议页状态:', st);
+        const img = await w.capturePage().catch(() => null);
+        if (img) {
+          require('node:fs').mkdirSync(dir, { recursive: true });
+          require('node:fs').writeFileSync(dir + '/meeting-frameless.png', img.toPNG());
+          console.log('[test] 截图已保存 meeting-frameless.png');
+        }
+      }
+    }
+    // 点拖动条上的 ✕，应关闭会议窗并回到主窗口
+    const stillOpen = BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().includes('/webrtc'));
+    if (stillOpen) {
+      await stillOpen.webContents.executeJavaScript(
+        `document.querySelector('#yx-dragbar .yx-close').click()`,
+      ).catch(() => {});
+      await sleep(2500);
+      const left = BrowserWindow.getAllWindows().map((w) => `${w.id}:${w.isVisible()}`);
+      console.log('[test] 关闭后窗口:', JSON.stringify(left));
+    }
+    ctx.setQuitting();
+    return app.quit();
+  }
+
   if (process.env.SMOKE_LOGOUTBTN) {
     await sleep(12000);
     const before = await win.webContents.executeJavaScript(`(() => {

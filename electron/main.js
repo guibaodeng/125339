@@ -909,6 +909,49 @@ function handleYsxArg(raw) {
 let shareWin = null;
 
 /**
+ * 会议窗（/webrtc）：无边框，顶部 32px 由 preload 注入的拖动条替代标题栏。
+ * frame 只能在创建时决定，所以会议必须单独开一个窗口，不能切换主窗口的边框。
+ */
+let meetingWin = null;
+/** 哪些 webContents 属于无边框会议窗（preload 据此决定是否注入拖动条） */
+const framelessWindows = new Set();
+
+function openMeetingWindow(url) {
+  if (meetingWin && !meetingWin.isDestroyed()) {
+    meetingWin.loadURL(url).catch(() => {});
+    if (meetingWin.isMinimized()) meetingWin.restore();
+    meetingWin.show();
+    meetingWin.focus();
+    console.log('[meeting-win] 复用会议窗口 #' + meetingWin.id);
+    return meetingWin;
+  }
+  const area = screen.getPrimaryDisplay().workArea;
+  meetingWin = new BrowserWindow({
+    width: Math.min(1280, area.width - 20),
+    height: Math.min(820, area.height - 20),
+    minWidth: Math.min(1024, area.width - 20),
+    minHeight: Math.min(640, area.height - 20),
+    frame: false,               // 无系统标题栏，改用页面顶部的拖动条
+    center: true,
+    show: false,
+    backgroundColor: '#000000',
+    title: '移动会议',
+    webPreferences: webPrefs,
+  });
+  framelessWindows.add(meetingWin.webContents.id);
+  meetingWin.loadURL(url).catch(() => {});
+  meetingWin.once('ready-to-show', () => { if (!meetingWin.isDestroyed()) meetingWin.show(); });
+  meetingWin.on('closed', () => {
+    if (meetingWin) framelessWindows.delete(meetingWin.webContents.id);
+    meetingWin = null;
+    console.log('[meeting-win] 会议窗口已关闭，回到主窗口');
+    showMainWindow();
+  });
+  console.log('[meeting-win] 新建无边框会议窗口 #' + meetingWin.id, url.replace(/nonce=[^&]+/, 'nonce=<hidden>').slice(0, 90));
+  return meetingWin;
+}
+
+/**
  * 普通子窗口（会控助手 r1.125339.com.cn 这类）：按 host 复用。
  * 站点每次点按钮都会 window.open 一次，不复用就会越开越多。
  */
@@ -1291,6 +1334,25 @@ if (!app.requestSingleInstanceLock()) {
     // preload 在文档开始前同步取登录态
     ipcMain.on('bridge:get', (event) => { event.returnValue = pendingBridge; });
 
+    ipcMain.on('window:chrome', (event) => {
+      const id = event.sender && event.sender.id;
+      event.returnValue = framelessWindows.has(id) ? 'frameless' : 'normal';
+    });
+
+    ipcMain.on('meeting:minimize', (event) => {
+      const w = BrowserWindow.fromWebContents(event.sender);
+      if (w && !w.isDestroyed()) w.minimize();
+    });
+
+    // 拖动条上的关闭按钮
+    ipcMain.on('meeting:close', (event) => {
+      const w = BrowserWindow.fromWebContents(event.sender);
+      if (w && !w.isDestroyed()) {
+        console.log('[meeting-win] 点击关闭按钮');
+        w.close();
+      }
+    });
+
     // 跟随系统深浅色（darkreader 在 preload 里启用）
     const themeMode = () => {
       const forced = String(process.env.DARK_MODE || '').toLowerCase();
@@ -1476,6 +1538,10 @@ if (!app.requestSingleInstanceLock()) {
       contents.setWindowOpenHandler(({ url, features }) => {
         // 门户入口（会议服务→移动会议）：地址里带页面动态算出的 nonce，
         // 我们不改写、不伪造，只把它接过来在同一个窗口打开。
+        if (/^https:\/\/conf\.125339\.com\.cn\/webrtc/.test(url)) {
+          openMeetingWindow(url);
+          return { action: 'deny' };
+        }
         if (url.startsWith(CONF_ORIGIN)) {
           portalEntryUrl = url;
           console.log('[portal-entry] captured:', url.replace(/nonce=[^&]+/, 'nonce=<hidden>'));
@@ -1519,6 +1585,12 @@ if (!app.requestSingleInstanceLock()) {
         return { action: 'deny' };
       });
       contents.on('will-navigate', (event, url) => {
+        // 主窗口要跳到会议页：改在无边框会议窗里打开（标题栏隐藏）
+        if (contents === win.webContents && /^https:\/\/conf\.125339\.com\.cn\/webrtc/.test(url)) {
+          event.preventDefault();
+          openMeetingWindow(url);
+          return;
+        }
         // 非 http(s) 协议（如分享页的 ysx://）一律拦掉，避免弹系统外部协议对话框
         if (!/^https?:/i.test(url)) {
           event.preventDefault();
