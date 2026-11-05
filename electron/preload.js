@@ -427,16 +427,25 @@ if (location.origin === CONF_ORIGIN) {
     const holder = li.parentElement;
     if (!holder) return;
 
+    // 站点右上角的文字项其实是 <button class="Button__TextButton... ec-text-button">，
+    // 直接把它的 class 借过来，字体/颜色/间距才能和「Web入会」完全一致
+    const navUl = document.querySelector('ul[class*="Navigation"]');
+    const refLi = navUl
+      ? [...navUl.children].find((el) => /Web入会/.test(el.innerText || ''))
+      : null;
+    const refBtn = (refLi && refLi.querySelector('button')) || (navUl && navUl.querySelector('button'));
+
     const item = document.createElement('li');
     item.id = 'yunshixun-logout';
-    item.className = li.className;          // 复用站点的 nav 样式
-    item.style.cssText = 'display:flex;align-items:center;cursor:pointer;';
+    item.className = refLi ? refLi.className : li.className;   // 复用站点的 nav 项样式
+    item.style.cssText = 'display:flex;align-items:center;';
 
-    const btn = document.createElement('span');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    if (refBtn) btn.className = refBtn.className;              // 复用文字按钮样式
     btn.textContent = '登出';
-    btn.style.cssText = 'color:#1677ff;font-size:14px;padding:0 12px;white-space:nowrap;';
-    btn.addEventListener('mouseenter', () => { btn.style.opacity = '0.75'; });
-    btn.addEventListener('mouseleave', () => { btn.style.opacity = '1'; });
+    btn.style.cssText = 'cursor:pointer;background:none;border:none;';
+
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();

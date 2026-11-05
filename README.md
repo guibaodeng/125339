@@ -653,10 +653,18 @@ if (isShareUrl(url)) {
 头像下拉被隐藏后，门户上就没有退出入口了。壳子在右上角（中英文切换后面）注入一个「登出」：
 
 ```js
-const item = document.createElement('li');
-item.id = 'yunshixun-logout';
-item.className = li.className;        // 复用站点 nav 样式
-// 点击 → ipcRenderer.send('auth:logout')
+// 站点右上角的文字项其实是 <button class="Button__TextButton... ec-text-button">，
+// 直接把它的 class 借过来，字体/颜色/字重才能和「Web入会」完全一致
+const refBtn = navUl.querySelector('button');
+btn.className = refBtn.className;
+btn.textContent = '登出';
+```
+
+实测两边计算样式完全相同：
+
+```
+webStyle   { fontSize: 12px, color: rgb(13,148,255), fontWeight: 400, fontFamily: "Helvetica Neue" }
+logoutStyle{ fontSize: 12px, color: rgb(13,148,255), fontWeight: 400, fontFamily: "Helvetica Neue" }
 ```
 
 主进程收到后：

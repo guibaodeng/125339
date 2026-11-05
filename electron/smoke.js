@@ -260,12 +260,24 @@ async function runSmoke(ctx, dir) {
 
   if (process.env.SMOKE_LOGOUTBTN) {
     await sleep(12000);
-    const before = await win.webContents.executeJavaScript(`JSON.stringify({
-      btn: !!document.getElementById('yunshixun-logout'),
-      url: location.href.slice(0, 80),
-      navLis: [...document.querySelectorAll('ul[class*="Navigation"] > li')]
-        .map((li) => (li.innerText || '').replace(/\s+/g, '').slice(0, 10)),
-    })`).catch((e) => 'ERR ' + e.message);
+    const before = await win.webContents.executeJavaScript(`(() => {
+      const styleOf = (root) => {
+        const b = root && root.querySelector('button');
+        if (!b) return null;
+        const s = getComputedStyle(b);
+        return { text: b.innerText, fontSize: s.fontSize, color: s.color,
+                 fontWeight: s.fontWeight, fontFamily: s.fontFamily.split(',')[0] };
+      };
+      const lis = [...document.querySelectorAll('ul[class*="Navigation"] > li')];
+      const webLi = lis.find((l) => /Web入会/.test(l.innerText || ''));
+      return JSON.stringify({
+        btn: !!document.getElementById('yunshixun-logout'),
+        url: location.href.slice(0, 80),
+        navLis: lis.map((li) => (li.innerText || '').replace(/\s+/g, '').slice(0, 10)),
+        webStyle: styleOf(webLi),
+        logoutStyle: styleOf(document.getElementById('yunshixun-logout')),
+      }, null, 1);
+    })()`).catch((e) => 'ERR ' + e.message);
     console.log('[test] 注入前:', before);
     // 点一下注入的按钮
     const clicked = await win.webContents.executeJavaScript(`(() => {
