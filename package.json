@@ -1,0 +1,95 @@
+{
+  "name": "yunshixun-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "中国移动云视讯（125339）桌面客户端",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron --no-sandbox .",
+    "start:sandboxed": "electron .",
+    "smoke": "SHOT_DIR=./screenshots electron --no-sandbox .",
+    "dist:dir": "electron-builder --dir",
+    "dist:linux": "electron-builder --linux AppImage deb",
+    "dist:win": "electron-builder --win nsis",
+    "dist": "electron-builder --linux AppImage deb",
+    "ysx-test": "electron --no-sandbox . 'ysx://com.zhongtai.ysx/app/callup?num=379682620'"
+  },
+  "devDependencies": {
+    "electron": "^45.2.2",
+    "electron-builder": "^26.18.0"
+  },
+  "author": "dengguibao <dengguibao@example.com>",
+  "build": {
+    "appId": "com.chinamobile.yunshixun.shell",
+    "productName": "yunshixun-desktop",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "electron/**/*",
+      "assets/tray.png",
+      "assets/icon.png",
+      "package.json"
+    ],
+    "asar": true,
+    "compression": "normal",
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Network",
+      "icon": "assets/icons",
+      "synopsis": "中国移动云视讯（125339）桌面客户端",
+      "syncDesktopName": true,
+      "maintainer": "dengguibao <dengguibao@example.com>",
+      "desktop": {
+        "entry": {
+          "Name": "移动会议",
+          "Comment": "中国移动云视讯桌面客户端",
+          "Icon": "/opt/yunshixun-desktop/app-icon.png",
+          "MimeType": "x-scheme-handler/ysx;",
+          "StartupNotify": "false"
+        }
+      },
+      "executableName": "yunshixun-desktop",
+      "executableArgs": [
+        "--no-sandbox"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "移动会议"
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ]
+    },
+    "artifactName": "${name}-${version}-${arch}.${ext}",
+    "extraFiles": [
+      "app-icon.png"
+    ]
+  },
+  "homepage": "https://www.125339.com.cn",
+  "desktopName": "yunshixun-desktop.desktop",
+  "productName": "yunshixun-desktop"
+}

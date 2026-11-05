@@ -1,0 +1,17 @@
+# 依赖与构建产物
+node_modules/
+dist/
+out/
+
+# 本地运行时数据（含登录态、Cookie、记住的密码，绝不能提交）
+userdata/
+*.log
+.DS_Store
+
+# 构建缓存
+.npmtmp/
+.eb-cache/
+.ebcache/
+
+# 临时测试用 profile（冒烟测试会生成 .xxx 目录）
+/.tmp/
