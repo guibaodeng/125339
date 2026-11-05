@@ -938,16 +938,18 @@ function openMeetingWindow(url) {
     title: '移动会议',
     webPreferences: webPrefs,
   });
-  framelessWindows.add(meetingWin.webContents.id);
+  const wcId = meetingWin.webContents.id;
+  framelessWindows.add(wcId);
   meetingWin.loadURL(url).catch(() => {});
-  meetingWin.once('ready-to-show', () => { if (!meetingWin.isDestroyed()) meetingWin.show(); });
+  meetingWin.once('ready-to-show', () => { if (meetingWin && !meetingWin.isDestroyed()) meetingWin.show(); });
   meetingWin.on('closed', () => {
-    if (meetingWin) framelessWindows.delete(meetingWin.webContents.id);
+    // 注意：closed 时 webContents 已经销毁，不能再读 meetingWin.webContents
+    framelessWindows.delete(wcId);
     meetingWin = null;
     console.log('[meeting-win] 会议窗口已关闭，回到主窗口');
     showMainWindow();
   });
-  console.log('[meeting-win] 新建无边框会议窗口 #' + meetingWin.id, url.replace(/nonce=[^&]+/, 'nonce=<hidden>').slice(0, 90));
+  console.log('[meeting-win] 新建无边框会议窗口 #' + wcId, url.replace(/nonce=[^&]+/, 'nonce=<hidden>').slice(0, 90));
   return meetingWin;
 }
 
