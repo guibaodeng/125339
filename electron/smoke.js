@@ -258,6 +258,30 @@ async function runSmoke(ctx, dir) {
     return app.quit();
   }
 
+  if (process.env.SMOKE_LOGOUTBTN) {
+    await sleep(12000);
+    const before = await win.webContents.executeJavaScript(`JSON.stringify({
+      btn: !!document.getElementById('yunshixun-logout'),
+      url: location.href.slice(0, 80),
+      navLis: [...document.querySelectorAll('ul[class*="Navigation"] > li')]
+        .map((li) => (li.innerText || '').replace(/\s+/g, '').slice(0, 10)),
+    })`).catch((e) => 'ERR ' + e.message);
+    console.log('[test] 注入前:', before);
+    // 点一下注入的按钮
+    const clicked = await win.webContents.executeJavaScript(`(() => {
+      const el = document.getElementById('yunshixun-logout');
+      if (!el) return 'no-btn';
+      el.querySelector('span').click();
+      return 'clicked';
+    })()`).catch((e) => 'ERR ' + e.message);
+    console.log('[test] 点击结果:', clicked);
+    await sleep(4000);
+    console.log('[test] 之后 → url =', win.webContents.getURL().slice(0, 90),
+      '| phase =', ctx.getPhase(), '| 可见 =', win.isVisible());
+    ctx.setQuitting();
+    return app.quit();
+  }
+
   if (process.env.SMOKE_LOGOUT) {
     await sleep(6000);
     ctx.setPhase('main'); // 模拟"已登录在门户"，让退出处理真的走一遍

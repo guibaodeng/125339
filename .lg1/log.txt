@@ -1,0 +1,258 @@
+[15:1105/131723.150842:ERROR:ui/ozone/platform/wayland/common/drm_render_node_path_finder.cc:40] drmGetDevices2() has not found any devices: No such file or directory (2)
+13:17:23.219 [log] 日志文件: /home/dengguibao/PycharmProjects/125339/.lg1/ud/app.log
+
+(electron:15): dconf-CRITICAL **: 13:17:23.225: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.225: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.225: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.225: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.225: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.226: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.227: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.227: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.229: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.229: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.254: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.254: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.259: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.290: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.298: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.298: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.298: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.298: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.298: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.299: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.299: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.299: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.299: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.300: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.300: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.300: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.300: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.300: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+13:17:23.305 [env] ─────────────────────────────────────────
+13:17:23.305 [env] 应用 0.1.0 | electron 45.2.2 | chromium 156.0.8078.80
+13:17:23.305 [env] 系统 linux | 会话 wayland | wayland 是 | sandbox 关闭
+13:17:23.305 [env] 数据目录 /home/dengguibao/PycharmProjects/125339/.lg1/ud
+13:17:23.305 [env] ─────────────────────────────────────────
+13:17:23.305 [env] 已启用 WebRTCPipeWireCapturer
+[54:1105/131723.306926:ERROR:ui/ozone/platform/wayland/common/drm_render_node_path_finder.cc:40] drmGetDevices2() has not found any devices: No such file or directory (2)
+
+(electron:15): dconf-CRITICAL **: 13:17:23.312: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.312: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+13:17:23.313 [display] 屏幕共享接管已安装，模式 = screen
+WARNING: Glycin running without sandbox.
+13:17:23.383 [tray] 托盘已停用（避免退出后鼠标转圈）
+13:17:23.384 [ysx] 注册异常: EROFS: read-only file system, open '/home/dengguibao/.local/share/applications/yunshixun-desktop-dev.desktop'
+13:17:23.384 [clip] 剪贴板监听已启动，间隔 1500 ms (剪贴板为空)
+13:17:23.386 [portal] 没找到 xdg-desktop-portal 进程 → Wayland 下屏幕共享会失败
+13:17:23.386 [portal] 修复：sudo apt install xdg-desktop-portal xdg-desktop-portal-gnome，然后注销重登
+
+(electron:15): dconf-CRITICAL **: 13:17:23.392: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.392: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.392: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.392: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.393: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.395: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.400: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.457: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.469: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.469: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.518: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.518: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.518: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.518: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.518: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.518: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.519: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.520: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.520: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.520: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.520: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.520: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.562: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.562: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.562: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.574: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.574: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.617: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.645: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+
+(electron:15): dconf-CRITICAL **: 13:17:23.645: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.
+13:17:23.707 [url] nav    win#1(main)  https://www.125339.com.cn/auth/SignIn
+13:17:23.863 (electron) 'safeStorage.decryptString' is deprecated and will be removed. Please use 'safeStorage.decryptStringAsync' instead.
+13:17:23.930 [boot] 已有登录态，直接进会议（不显示登录框）
+13:17:24.083 [resolve] ok (via template) https://conf.125339.com.cn/?lang=zh-CN&customer=chinamobile&nonce=<hidden>&redirect=user_conference_list#/login
+13:17:24.083 [phase] main
+13:17:24.793 [url] nav    win#1(main)  https://conf.125339.com.cn/?lang=zh-CN&customer=chinamobile&nonce=<hidden>&redirect=user_conference_list#/login
+13:17:25.182 [url] nav    win#1(main)  https://conf.125339.com.cn/#/login?lang=zh-CN&customer=chinamobile&nonce=<hidden>&redirect=user_conference_list
+13:17:26.004 [url] inpage win#1(main)  https://conf.125339.com.cn/#/portal/cmp/user/conference/conference-list?lang=zh-CN&customer=chinamobile
+13:17:37.422 [shot] live-flow.png 1280x820 https://conf.125339.com.cn/#/portal/cmp/user/conference/conference-list?lang=zh-CN&customer=chinamobile
+13:17:37.422 [live] url: https://conf.125339.com.cn/#/portal/cmp/user/conference/conference-list?lang=zh-CN&customer=chinamobile
+13:17:37.422 [live] phase: main | portalEntryUrl: false
+13:17:37.422 [quit] before-quit
+13:17:37.425 [quit] will-quit
+13:17:37.425 [quit] process exit, code = 0

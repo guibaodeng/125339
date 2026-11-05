@@ -648,6 +648,38 @@ if (isShareUrl(url)) {
 
 关闭：`CLIP_WATCH=0 npm start`；改间隔：`CLIP_INTERVAL_MS=3000`。
 
+## 门户右上角「登出」
+
+头像下拉被隐藏后，门户上就没有退出入口了。壳子在右上角（中英文切换后面）注入一个「登出」：
+
+```js
+const item = document.createElement('li');
+item.id = 'yunshixun-logout';
+item.className = li.className;        // 复用站点 nav 样式
+// 点击 → ipcRenderer.send('auth:logout')
+```
+
+主进程收到后：
+
+```js
+ipcMain.on('auth:logout', async () => {
+  await clearLoginState();   // 缓存 token + 两个源的 localStorage + Cookies
+  await gotoLogin();         // 缩回 410×424 登录窗并载入登录页
+});
+```
+
+**踩过的坑**：门户是 SPA（`#/login` → `#/portal` 是前端路由，不重新加载页面），
+所以不能在 preload 顶层判断 `location.hash.includes('/portal')`——那一刻还是 `#/login`。
+判断要放到注入函数里，靠 MutationObserver 在路由切换后触发。
+
+实测：
+
+```
+[test] 注入前: {"btn":true,"navLis":["Web入会","主持会议","任务中心","中文Englih","登出","邓桂保"]}
+[logout] 收到门户「登出」请求
+[test] 之后 → url = https://www.125339.com.cn/auth/SignIn | phase = login | 可见 = true
+```
+
 ## URL 白名单：只显示"正经页面"
 
 站点会经过一些中转/跳转页（`www.125339.com.cn/?status=login`、各种 OAuth 跳板），

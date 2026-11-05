@@ -1289,6 +1289,17 @@ if (!app.requestSingleInstanceLock()) {
     // preload 在文档开始前同步取登录态
     ipcMain.on('bridge:get', (event) => { event.returnValue = pendingBridge; });
 
+    // 门户右上角「登出」：清空本地登录态后回到登录页
+    ipcMain.on('auth:logout', async () => {
+      console.log('[logout] 收到门户「登出」请求');
+      try {
+        await clearLoginState();
+      } catch (e) {
+        console.log('[logout] 清理登录态失败:', e.message);
+      }
+      await gotoLogin();
+    });
+
     // 渲染进程报上来的 JS 错误
     ipcMain.on('log:renderer', (_event, payload) => logRendererError(payload));
 

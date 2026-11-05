@@ -409,6 +409,58 @@ if (location.origin === WWW_ORIGIN) {
 // ---------------------------------------------------------------------------
 // 登录态注入（当前流程用不到：门户靠 nonce 入口，这里保留兜底）
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 门户右上角注入「登出」（紧跟在中英文切换后面）
+// ---------------------------------------------------------------------------
+if (location.origin === CONF_ORIGIN) {
+  const injectLogout = () => {
+    // 注意：preload 只在页面加载时执行一次，而门户是 SPA（#/login → #/portal 是前端路由），
+    // 所以这里不能在外层判断 hash，必须在注入时判断。
+    if (!location.hash.includes('/portal')) return;
+    if (document.getElementById('yunshixun-logout')) return;
+    // 语言切换是 ul.Navigation 里第 4 个 li，里面是 div.lang-switch（中文English）
+    const lang = document.querySelector('[class*="LanguageSwitch__Wrapper"], .lang-switch')
+      || [...document.querySelectorAll('div,span')]
+        .find((el) => (el.innerText || '').replace(/\s+/g, '') === '中文English');
+    if (!lang) return;
+    const li = lang.closest('li') || lang;
+    const holder = li.parentElement;
+    if (!holder) return;
+
+    const item = document.createElement('li');
+    item.id = 'yunshixun-logout';
+    item.className = li.className;          // 复用站点的 nav 样式
+    item.style.cssText = 'display:flex;align-items:center;cursor:pointer;';
+
+    const btn = document.createElement('span');
+    btn.textContent = '登出';
+    btn.style.cssText = 'color:#1677ff;font-size:14px;padding:0 12px;white-space:nowrap;';
+    btn.addEventListener('mouseenter', () => { btn.style.opacity = '0.75'; });
+    btn.addEventListener('mouseleave', () => { btn.style.opacity = '1'; });
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      console.log('[logout] 点击门户「登出」');
+      try { ipcRenderer.send('auth:logout'); } catch { /* 忽略 */ }
+    });
+    item.appendChild(btn);
+    holder.insertBefore(item, li.nextSibling);
+    console.log('[logout] 已在右上角注入「登出」按钮');
+  };
+
+  const startLogoutButton = () => {
+    injectLogout();
+    // SPA 切换路由会重建 header
+    new MutationObserver(() => injectLogout())
+      .observe(document.documentElement, { childList: true, subtree: true });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startLogoutButton, { once: true });
+  } else {
+    startLogoutButton();
+  }
+}
+
 if (location.origin === CONF_ORIGIN) {
   try {
     const raw = ipcRenderer.sendSync('bridge:get');
