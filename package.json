@@ -30,7 +30,8 @@
       "electron/**/*",
       "assets/tray.png",
       "assets/icon.png",
-      "package.json"
+      "package.json",
+      "node_modules/darkreader/**/*"
     ],
     "asar": true,
     "compression": "normal",
@@ -91,5 +92,8 @@
   },
   "homepage": "https://www.125339.com.cn",
   "desktopName": "yunshixun-desktop.desktop",
-  "productName": "yunshixun-desktop"
+  "productName": "yunshixun-desktop",
+  "dependencies": {
+    "darkreader": "^4.9.134"
+  }
 }

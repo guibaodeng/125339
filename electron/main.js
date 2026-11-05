@@ -14,7 +14,7 @@
  */
 
 const {
-  app, BrowserWindow, session, shell, Menu,
+  app, BrowserWindow, session, shell, Menu, nativeTheme,
   screen, ipcMain, safeStorage, dialog, clipboard,
 } = require('electron');
 const { installDisplayMediaHandler } = require('./display-media');
@@ -80,7 +80,9 @@ const webPrefs = {
   preload: path.join(__dirname, 'preload.js'),
   contextIsolation: true,
   nodeIntegration: false,
-  sandbox: true,
+  // 关掉 renderer 沙箱：preload 需要 require('darkreader')。
+  // 注意我们本来就以 --no-sandbox 运行（见 config.js），这里不额外降低系统级隔离。
+  sandbox: false,
   spellcheck: false,
   backgroundThrottling: false,
   // 页面里的 alert()/confirm()/prompt() 会阻塞渲染进程（表现为"无响应、点不动"），
@@ -1288,6 +1290,21 @@ if (!app.requestSingleInstanceLock()) {
 
     // preload 在文档开始前同步取登录态
     ipcMain.on('bridge:get', (event) => { event.returnValue = pendingBridge; });
+
+    // 跟随系统深浅色（darkreader 在 preload 里启用）
+    const themeMode = () => {
+      const forced = String(process.env.DARK_MODE || '').toLowerCase();
+      if (forced === 'dark' || forced === 'light') return forced;   // 调试用
+      return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+    };
+    ipcMain.on('theme:get', (event) => { event.returnValue = themeMode(); });
+    nativeTheme.on('updated', () => {
+      const mode = themeMode();
+      console.log('[theme] 系统切换为', mode);
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed()) w.webContents.send('theme:set', mode);
+      }
+    });
 
     // 门户右上角「登出」：清空本地登录态后回到登录页
     ipcMain.on('auth:logout', async () => {

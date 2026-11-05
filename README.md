@@ -648,6 +648,50 @@ if (isShareUrl(url)) {
 
 关闭：`CLIP_WATCH=0 npm start`；改间隔：`CLIP_INTERVAL_MS=3000`。
 
+## 深色模式：Dark Reader 跟随系统
+
+用 [`darkreader`](https://www.npmjs.com/package/darkreader) 而不是自己写 CSS 反色：
+
+```js
+const OPTIONS = { brightness: 100, contrast: 90, sepia: 0 };
+dr.setFetchMethod(window.fetch.bind(window));
+dr.enable(OPTIONS);      // 深色
+dr.disable();            // 浅色
+```
+
+跟随系统：主进程用 `nativeTheme.shouldUseDarkColors` 判断，系统切换时广播给所有窗口：
+
+```js
+ipcMain.on('theme:get', (event) => { event.returnValue = themeMode(); });
+nativeTheme.on('updated', () => { /* 广播 theme:set 给每个窗口 */ });
+```
+
+- **会议页 `/webrtc` 不套**（避免影响视频画面和会议 UI）
+- 调试可强制：`DARK_MODE=dark` 或 `DARK_MODE=light`
+
+### 两个坑
+
+**① `require('darkreader')` 拿到的是空对象**
+
+包的 `package.json` 写着 `"type": "module"`，但 `darkreader.js` 其实是 UMD。
+Node 会按 ESM 处理 → `require()` 返回空命名空间、`import()` 也拿不到 `enable`。
+解决办法是把 UMD 源码在新作用域里跑一遍：
+
+```js
+const src = fs.readFileSync(require.resolve('darkreader'), 'utf8');
+const mod = { exports: {} };
+new Function('module', 'exports', src)(mod, mod.exports);
+const dr = mod.exports;   // 有 enable / disable / setFetchMethod
+```
+
+**② preload 需要 `sandbox: false`**
+
+沙箱化的 preload 不能 `require` 任意模块。我们本来就以 `--no-sandbox` 运行，
+所以这里不额外降低系统级隔离。
+
+打包时要把依赖带进去：`build.files` 加了 `node_modules/darkreader/**/*`
+（实测 asar 里能正常加载）。
+
 ## 门户右上角「登出」
 
 头像下拉被隐藏后，门户上就没有退出入口了。壳子在右上角（中英文切换后面）注入一个「登出」：

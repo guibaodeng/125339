@@ -31,6 +31,61 @@ const { ipcRenderer } = require('electron');
   });
 })();
 
+// ---------------------------------------------------------------------------
+// 深色模式：用 darkreader 跟随系统（preload 里直接 require）
+//   DARK_READER=0 可关闭；会议页（/webrtc）不套，避免影响视频和会议 UI
+// ---------------------------------------------------------------------------
+(() => {
+  // 注意：darkreader 的 package.json 是 "type": "module"，但 darkreader.js 实际是 UMD。
+  // Node 会把 .js 当 ESM 处理 → require() 拿到空对象、import() 也拿不到 enable。
+  // 所以直接把 UMD 源码在新作用域里跑一遍，拿到它导出的 API。
+  let dr = null;
+  try {
+    const fs = require('fs');
+    const file = require.resolve('darkreader');
+    const src = fs.readFileSync(file, 'utf8');
+    const mod = { exports: {} };
+    new Function('module', 'exports', src)(mod, mod.exports);
+    dr = mod.exports;
+  } catch (e) {
+    console.warn('[dark] darkreader 加载失败:', e.message);
+    return;
+  }
+  if (!dr || typeof dr.enable !== 'function') return;
+
+  const skip = () => location.pathname.startsWith('/webrtc');   // 会议页不套，避免影响视频
+  const OPTIONS = { brightness: 100, contrast: 90, sepia: 0 };
+  let current = 'light';
+
+  const apply = (mode) => {
+    current = mode === 'dark' ? 'dark' : 'light';
+    try {
+      if (current === 'dark' && !skip()) {
+        if (typeof dr.setFetchMethod === 'function') dr.setFetchMethod(window.fetch.bind(window));
+        dr.enable(OPTIONS);
+      } else {
+        dr.disable();
+      }
+    } catch (e) {
+      console.warn('[dark] 切换失败:', e.message);
+    }
+  };
+
+  const applyCurrent = () => apply(current);
+
+  try {
+    apply(ipcRenderer.sendSync('theme:get'));
+  } catch {
+    apply('light');
+  }
+  ipcRenderer.on('theme:set', (_e, mode) => apply(mode));
+
+  // darkreader 在 DOM 还没建好时可能拿不到 body，加载完成后补一次
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyCurrent, { once: true });
+  }
+})();
+
 const CONF_ORIGIN = 'https://conf.125339.com.cn';
 const WWW_ORIGIN = 'https://www.125339.com.cn';
 
