@@ -14,7 +14,7 @@
  */
 
 const {
-  app, BrowserWindow, session, shell, Menu, Tray, nativeImage,
+  app, BrowserWindow, session, shell, Menu,
   screen, ipcMain, safeStorage, dialog, clipboard,
 } = require('electron');
 const { installDisplayMediaHandler } = require('./display-media');
@@ -367,6 +367,7 @@ async function silentReauth() {
       show: false,
       webPreferences: { partition: PARTITION, contextIsolation: true, nodeIntegration: false, sandbox: true },
     });
+    helperWindows.add(hidden);   // 工具窗口，白名单闸门不许显示它
     await hidden.loadURL(`${WWW_ORIGIN}/auth/SignIn`).catch(() => {});
     const has = await hidden.webContents.executeJavaScript('!!localStorage.getItem("Authorization")')
       .catch(() => false);
@@ -924,7 +925,9 @@ function openChildWindow(url, featureSize) {
     return exist;
   }
 
-  const area = screen.getDisplayMatching(win.getBounds()).workArea;
+  const area = screen.getDisplayMatching(
+    win && !win.isDestroyed() ? win.getBounds() : { x: 0, y: 0, width: 0, height: 0 },
+  ).workArea;
   const width = Math.min(featureSize && featureSize.width ? featureSize.width : 1024, area.width - 40);
   const height = Math.min(featureSize && featureSize.height ? featureSize.height : 720, area.height - 80);
   const child = new BrowserWindow({
@@ -968,7 +971,11 @@ function openShareWindow(url) {
     webPreferences: webPrefs,
   });
   shareWin.loadURL(url).catch(() => {});
-  shareWin.on('closed', () => { shareWin = null; });
+  shareWin.on('closed', () => {
+    shareWin = null;
+    // 窗口关掉后，同一场会的链接再复制一次应该还能打开
+    if (clipWatcher) clipWatcher.reset();
+  });
   console.log('[share] 新建分享窗口 #' + shareWin.id);
   return shareWin;
 }
@@ -997,7 +1004,8 @@ let closePrompting = false;
 
 const isLeaveUrl = (url) => /\/webrtc\//.test(url) && /#\/leave\b/.test(url);
 /** 会议页走到错误路由（#/errors、?error=...）就把窗口关掉 */
-const isErrorUrl = (url) => /\/webrtc\//.test(url) && /error/i.test(url);
+// 只认会议页真正的错误路由（#/errors、?error=），别把普通参数里的 error 也算进来
+const isErrorUrl = (url) => /\/webrtc\//.test(url) && (/#\/errors?\b/.test(url) || /[?&]error=/.test(url));
 /** 会议分享页：yunshixun.125339.com.cn/share/<会议号>?xlocation=... */
 const isShareUrl = (url) => /^https:\/\/yunshixun\.125339\.com\.cn\/share\//.test(url);
 
@@ -1028,14 +1036,10 @@ async function onMeetingLeft(targetWin, reason = 'leave') {
       app.quit();
       return;
     }
-    if (LEAVE_ACTION === 'portal') {
-      win.loadURL(PORTAL_URL).catch(() => {});
-      return;
-    }
-    win.close();                       // 走关闭流程（下面会跳过"会议中"确认）
-    await sleep(300);
-    // 复位到门户，避免下次从托盘唤回时停在"已离开"页
-    if (win && !win.isDestroyed()) win.loadURL(PORTAL_URL).catch(() => {});
+    // 注意：托盘停用后，关闭窗口 = 退出程序。
+    // 所以会议结束不能走 win.close()，否则整程序会跟着退掉；统一回门户。
+    win.loadURL(PORTAL_URL).catch(() => {});
+    if (!win.isVisible()) win.show();
   } finally {
     leavingMeeting = false;
   }
@@ -1309,7 +1313,7 @@ if (!app.requestSingleInstanceLock()) {
     // 登录页把卡片尺寸报上来，窗口收成刚好包住卡片
     ipcMain.on('login:size', (_event, size) => {
       if (!win || win.isDestroyed() || phase !== 'login' || !size) return;
-      if (LOGIN_FIXED_SIZE) return;   // 固定尺寸时忽略卡片测量值
+      if (LOGIN_FIXED_SIZE) return;   // 固定尺寸时忽略卡片测量值（preload 也不会再发）
       const width = Math.max(360, Math.min(600, size.width + LOGIN_PADDING * 2));
       const height = Math.max(320, Math.min(700, size.height + LOGIN_PADDING * 2 + LOGIN_EXTRA_HEIGHT));
       if (width === SIZE.login.width && height === SIZE.login.height) return;
@@ -1514,7 +1518,10 @@ if (!app.requestSingleInstanceLock()) {
         console.log('[win] 页面尝试阻止关闭（beforeunload），已忽略并允许关闭');
       });
       contents.on('did-fail-load', (_e2, code, desc, url, isMainFrame) => {
-        if (isMainFrame) console.log('[win] 加载失败:', code, desc, String(url).slice(0, 80));
+        // -3 = ERR_ABORTED，导航被后续跳转打断，属于正常现象
+        if (isMainFrame && code !== -3) {
+          console.log('[win] 加载失败:', code, desc, String(url).slice(0, 80));
+        }
       });
 
       // 会议页的渲染进程报错很关键（HRTC / WebRTC 的错误都在这里）

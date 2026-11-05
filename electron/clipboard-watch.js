@@ -92,6 +92,10 @@ function startClipboardWatch({ onMeeting, intervalMs = 1500 } = {}) {
       if (timer) clearInterval(timer);
       timer = null;
     },
+    /** 分享窗关掉后调用：允许再次识别同一场会 */
+    reset() {
+      lastOpened = '';
+    },
   };
 }
 
