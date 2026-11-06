@@ -648,6 +648,29 @@ if (isShareUrl(url)) {
 
 关闭：`CLIP_WATCH=0 npm start`；改间隔：`CLIP_INTERVAL_MS=3000`。
 
+## 启动性能
+
+一次"已有登录态"的启动原本要 ~4.8 秒窗口才出现，做了三处优化后约 **0.6 秒**就出来
+（先显示窗口 + 遮罩，内容约 3 秒渲染完）。
+
+| 优化 | 原来 | 现在 |
+| --- | --- | --- |
+| `showWhenLoaded()` 误等 4 秒兜底 | 页面其实已加载完，但 `did-stop-loading` 早错过了，只能等满 4s | 先判断 `webContents.isLoading()`，已加载就直接 `show()` |
+| 启动流程 | 先加载 www 登录页读 token，再决定进门户（多一次页面加载） | 缓存 token 有效时**直接换 nonce 进门户**，跳过登录页 |
+| 放大动画 | `await growToMain()` 之后才开始加载门户 | 动画与 `loadURL` 并行 |
+
+快速通道的关键是：缓存的 token 能直接换到 nonce（`ses.fetch('/server/mobile/nonce')`），
+不需要窗口；失败才回退到"加载登录页 → 读 localStorage → 走原流程"。
+
+实测时间线（同一份 profile）：
+
+```
+15:14:10.463  日志文件
+15:14:11.081  [boot] 缓存 token 有效，直接进门户（跳过登录页）   ← 窗口此刻显示
+15:14:11.465  [url] nav 门户 URL
+15:14:13.451  [url] inpage .../conference-list                   ← 遮罩撤掉
+```
+
 ## 深色模式：Dark Reader 跟随系统
 
 用 [`darkreader`](https://www.npmjs.com/package/darkreader) 而不是自己写 CSS 反色：

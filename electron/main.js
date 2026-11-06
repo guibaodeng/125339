@@ -172,8 +172,14 @@ function showWindow() {
 /** 等新页面加载完再显示，避免"登录框被拉大"的闪一下 */
 function showWhenLoaded() {
   if (!win || win.isDestroyed() || shown) return;
+  // 页面已经加载完（例如启动时先加载了登录页再看登录态）：直接显示。
+  // 以前这里只挂 did-stop-loading，错过了事件就要等满 4 秒兜底，表现为"启动慢 4 秒"。
+  if (!win.webContents.isLoading()) {
+    showWindow();
+    return;
+  }
   const done = () => { clearTimeout(timer); showWindow(); };
-  const timer = setTimeout(done, 4000);
+  const timer = setTimeout(done, 2000);
   win.webContents.once('did-stop-loading', done);
 }
 
@@ -187,6 +193,40 @@ async function boot() {
   if (DISABLE_TOKEN) {
     console.log('[boot] DISABLE_TOKEN=1：清空本地登录态，强制走登录流程');
     await clearLoginState();
+  }
+
+  // 快速通道：缓存里还有有效 token 时，直接换 nonce 进门户，完全不加载登录页。
+  // 省掉一次 www 页面加载（约 1 秒），也不会闪一下登录框。
+  if (!DISABLE_TOKEN) {
+    const cached = readCachedToken();
+    const exp = cached ? tokenExpiry(cached) : 0;
+    if (cached && (exp === 0 || exp - Date.now() > 60 * 1000)) {
+      const nonce = await getJoinNonce({ allowWindow: false }).catch(() => '');
+      if (nonce) {
+        const url = PORTAL_TEMPLATE.replace('{}', nonce);
+        console.log('[boot] 缓存 token 有效，直接进门户（跳过登录页）');
+        saveCachedToken(cached);
+        phase = 'main';
+        // 先按主窗口尺寸显示 + 盖"加载中"，让窗口尽快出现（约 0.6s），
+        // 门户渲染完成后再撤掉遮罩
+        win.setMinimumSize(...(() => {
+          const a = screen.getDisplayMatching(win.getBounds()).workArea;
+          return [Math.min(1280, a.width - 20), Math.min(720, a.height - 20)];
+        })());
+        win.setBounds(targetBounds(SIZE.main));
+        showWindow();
+        showLoadingOverlay(win, '正在载入…');
+        win.webContents.once('dom-ready', () => showLoadingOverlay(win, '正在载入…'));
+        win.webContents.on('did-navigate-in-page', (_e, u) => {
+          if (String(u).includes('/portal')) setTimeout(() => hideLoadingOverlay(win), 200);
+        });
+        const grow = growToMain({ goWorkbench: false });   // 与页面加载并行
+        win.loadURL(url).catch(() => {});
+        await grow;
+        return;
+      }
+      console.log('[boot] 直连换 nonce 失败，回退到常规启动流程');
+    }
   }
 
   win.loadURL(LOGIN_URL).catch(() => {});
@@ -222,8 +262,9 @@ async function boot() {
     if (resolved && resolved.url) {
       phase = 'main';
       showWhenLoaded();                      // 门户加载完再显示
-      await growToMain({ goWorkbench: false });
+      const grow = growToMain({ goWorkbench: false });   // 动画与加载并行
       win.loadURL(resolved.url).catch(() => {});
+      await grow;
       return;
     }
     // 登录态有效但算不出地址：走工作台 + 代点菜单
@@ -535,6 +576,13 @@ function showLoadingOverlay(target = win, text = '正在进入会议…') {
   target.webContents.executeJavaScript(js).catch(() => {});
 }
 
+function hideLoadingOverlay(target = win) {
+  if (!target || target.isDestroyed()) return;
+  target.webContents.executeJavaScript(
+    `(() => { const el = document.getElementById('yunshixun-loading'); if (el) el.remove(); })()`,
+  ).catch(() => {});
+}
+
 /**
  * URL 白名单闸门：只有命中 config.URL_WHITELIST 的页面才允许显示。
  *
@@ -809,7 +857,7 @@ function parseNonce(raw) {
   }
 }
 
-async function getJoinNonce() {
+async function getJoinNonce({ allowWindow = true } = {}) {
   const ses = session.fromPartition(PARTITION);
 
   // ① 优先用缓存的 www token 直接请求（不开任何窗口，最快）
@@ -826,6 +874,8 @@ async function getJoinNonce() {
       }
     } catch { /* 回退到窗口方案 */ }
   }
+
+  if (!allowWindow) return '';
 
   // ② 回退：临时开一个隐藏窗口（token 存在 www 的 localStorage 里）
   const tmp = new BrowserWindow({ show: false, webPreferences: webPrefs });
