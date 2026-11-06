@@ -12,6 +12,22 @@ const SHARE_BASE = 'https://yunshixun.125339.com.cn/share';
  *   ③ 兜底：文本里带"会议"字样 + 任意链接
  * 返回 null 表示这段文本不是会议信息。
  */
+/** 只取会议号：分享链接 / 「移动会议：xxx」都能解析；拿不到返回 null */
+function extractMeetingNumber(text) {
+  const t = String(text || '');
+  if (!t.trim()) return null;
+
+  const share = t.match(/https?:\/\/[^\s"'<>）)]*125339\.com\.cn\/share\/(\d{6,})/i);
+  if (share) return share[1];
+
+  const num = t.match(/移动会议\s*[:：]\s*([0-9][0-9\s]{4,20})/);
+  if (num) {
+    const digits = num[1].replace(/\s+/g, '');
+    if (digits.length >= 6) return digits;
+  }
+  return null;
+}
+
 function extractMeetingUrl(text) {
   const t = String(text || '');
   if (!t.trim()) return null;
@@ -55,4 +71,4 @@ function parseYsxUrl(raw) {
 /** 是否是 ysx:// 链接 */
 const isYsxUrl = (raw) => /^ysx:\/\//i.test(String(raw || ''));
 
-module.exports = { SHARE_BASE, extractMeetingUrl, parseYsxUrl, isYsxUrl };
+module.exports = { SHARE_BASE, extractMeetingNumber, extractMeetingUrl, parseYsxUrl, isYsxUrl };

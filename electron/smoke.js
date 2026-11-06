@@ -94,7 +94,7 @@ async function runSmoke(ctx, dir) {
 会议主题：周会
 移动会议：379 172 521`;
     const sample3 = `这是一段普通文本，不是会议。`;
-    await clipboard.writeText(sample1.trim());
+    await clipboard.writeText((process.env.CLIP_TEXT || sample1).trim());
     await sleep(2500);
     await clipboard.writeText(sample2.trim());
     await sleep(2500);

@@ -11,7 +11,7 @@
 const { clipboard } = require('electron');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const { extractMeetingUrl } = require('./meeting-url');
+const { extractMeetingUrl, extractMeetingNumber } = require('./meeting-url');
 
 /**
  * @param {object} opts
@@ -51,9 +51,9 @@ function startClipboardWatch({ onMeeting, intervalMs = 1500 } = {}) {
     if (url === lastOpened) return;   // 同一场会不重复开窗
     lastOpened = url;
 
-    const num = (url.match(/\/share\/(\d{6,})/) || [])[1];
-    console.log('[clip] 识别到会议号', num || '(未识别)', '→ 打开分享窗');
-    onMeeting(url);
+    const num = extractMeetingNumber(text) || (url.match(/\/share\/(\d{6,})/) || [])[1];
+    console.log('[clip] 识别到会议号', num || '(未识别)');
+    onMeeting(url, num);
 
     // 处理完清空剪贴板：否则下次启动又会读到同一段文本，重复进会
     if (process.env.CLIP_KEEP !== '1') {

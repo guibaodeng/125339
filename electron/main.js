@@ -1036,8 +1036,18 @@ function openShareWindow(url) {
 let clipWatcher = null;
 
 function startClipboardWatch() {
+  // CLIP_MODE=share：像以前一样打开分享页；
+  // 默认 join：直接走壳子的入会通道（/webrtc + 会议号 + 账号姓名），不依赖分享页登录态
+  const mode = process.env.CLIP_MODE === 'share' ? 'share' : 'join';
   clipWatcher = startClipWatch({
-    onMeeting: (url) => openShareWindow(url),
+    onMeeting: (url, num) => {
+      if (mode === 'share' || !num) {
+        openShareWindow(url);
+        return;
+      }
+      console.log('[clip] 直接入会，会议号', num);
+      openJoinWindow(num).catch((e) => console.log('[clip] 入会失败:', e.message));
+    },
     intervalMs: Number(process.env.CLIP_INTERVAL_MS || 1500),
   });
 }

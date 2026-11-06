@@ -68,7 +68,8 @@ const { ipcRenderer } = require('electron');
       if (current === 'dark' && !skip()) {
         if (typeof dr.setFetchMethod === 'function') dr.setFetchMethod(window.fetch.bind(window));
         dr.enable(OPTIONS);
-      } else {
+      } else if (typeof dr.isEnabled !== 'function' || dr.isEnabled()) {
+        // 没启用过就不要再 disable（会议页会因此报 removeAttribute of null）
         dr.disable();
       }
     } catch (e) {
