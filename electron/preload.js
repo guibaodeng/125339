@@ -54,7 +54,12 @@ const { ipcRenderer } = require('electron');
   if (!dr || typeof dr.enable !== 'function') return;
 
   const skip = () => location.pathname.startsWith('/webrtc');   // 会议页不套，避免影响视频
-  const OPTIONS = { brightness: 100, contrast: 90, sepia: 0 };
+  // 参数由主进程给（可用 DARK_BRIGHTNESS / DARK_CONTRAST / DARK_SEPIA / DARK_GRAYSCALE / DARK_DIM 调整）
+  let OPTIONS = { brightness: 100, contrast: 90, sepia: 0 };
+  try {
+    const o = ipcRenderer.sendSync('theme:options');
+    if (o && typeof o === 'object') OPTIONS = o;
+  } catch { /* 用默认值 */ }
   let current = 'light';
 
   const apply = (mode) => {

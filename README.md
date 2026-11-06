@@ -659,6 +659,39 @@ dr.enable(OPTIONS);      // 深色
 dr.disable();            // 浅色
 ```
 
+### 参数怎么调
+
+可调项来自 darkreader 的 `Theme`（`node_modules/darkreader/index.d.ts`）：
+
+| 参数 | 范围 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `brightness` | 0–100+ | 100 | 整体亮度，100 = 原亮度，越小越暗 |
+| `contrast` | 0–100+ | 100 | 对比度，100 = 站点原对比度 |
+| `sepia` | 0–100 | 0 | 暖色程度 |
+| `grayscale` | 0–100 | 0 | 灰度 |
+| `mode` | `1`/`0` | 1 | 1 = 深色，0 = 暗淡（dimmed） |
+
+壳子里默认用 `brightness: 100, contrast: 90, sepia: 0`（对比度略降，长时间看着不刺眼），
+每一项都能用环境变量覆盖：
+
+```bash
+DARK_CONTRAST=110 npm start            # 对比度更高，文字更锐利
+DARK_BRIGHTNESS=85 npm start           # 整体压暗
+DARK_SEPIA=20 npm start                # 偏暖（类似护眼）
+DARK_GRAYSCALE=100 npm start           # 纯灰度
+DARK_DIM=1 npm start                   # 暗淡模式（mode: 0），不是纯黑
+```
+
+实测差异（同一页面截图的平均亮度）：
+
+| 配置 | 平均亮度 | 标准差 |
+| --- | --- | --- |
+| `DARK_CONTRAST=120` | 13 | 20.4 |
+| `DARK_BRIGHTNESS=85 DARK_SEPIA=20` | 39 | 13.5 |
+
+数值是主进程 `config.js` 读环境变量后经 `theme:options` 发给 preload 的，
+想改成写死的默认值就改 `electron/config.js` 里的 `DARK_THEME`。
+
 跟随系统：主进程用 `nativeTheme.shouldUseDarkColors` 判断，系统切换时广播给所有窗口：
 
 ```js

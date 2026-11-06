@@ -104,6 +104,25 @@ const SHOT_DIR = process.env.SHOT_DIR || '';
 const AUTO_ENTER = process.env.AUTO_ENTER !== '0';
 /** REMEMBER=0 时不记住账号密码 */
 const REMEMBER = process.env.REMEMBER !== '0';
+/**
+ * Dark Reader 主题参数（都可以用环境变量覆盖）
+ *   brightness 0~100+，100 = 原始亮度，越小越暗
+ *   contrast   0~100+，100 = 站点原对比度
+ *   sepia      0~100，暖色
+ *   mode       1 = 深色，0 = 暗淡（dimmed）
+ */
+const num = (v, def) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : def;
+};
+const DARK_THEME = {
+  brightness: num(process.env.DARK_BRIGHTNESS, 100),
+  contrast: num(process.env.DARK_CONTRAST, 90),
+  sepia: num(process.env.DARK_SEPIA, 0),
+  grayscale: num(process.env.DARK_GRAYSCALE, 0),
+  mode: process.env.DARK_DIM === '1' ? 0 : 1,
+};
+
 /** DISABLE_TOKEN=1：启动时清掉本地登录态，强制走一次完整的登录流程（调试用） */
 const DISABLE_TOKEN = process.env.DISABLE_TOKEN === '1';
 
@@ -150,6 +169,7 @@ module.exports = {
   AUTO_ENTER,
   REMEMBER,
   DISABLE_TOKEN,
+  DARK_THEME,
   sleep,
   isInternal,
   URL_WHITELIST,

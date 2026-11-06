@@ -35,7 +35,7 @@ const {
   IS_WAYLAND, CONF_ORIGIN, WWW_ORIGIN, SHARE_BASE, PORTAL_URL, PORTAL_TEMPLATE,
   LOGIN_URL, LOGIN_FIXED_SIZE, SIZE, LOGIN_PADDING, LOGIN_EXTRA_HEIGHT,
   RESIZE_MS, PARTITION, ALLOWED_SUFFIX, SHOT_DIR, AUTO_ENTER, REMEMBER, DISABLE_TOKEN,
-  sleep, isInternal, userDataDir, isWhitelisted,
+  sleep, isInternal, userDataDir, isWhitelisted, DARK_THEME,
 } = require('./config');
 const { teeConsole, installCrashHandlers, logRendererError, getLogPath } = require('./logger');
 
@@ -1298,6 +1298,7 @@ if (!app.requestSingleInstanceLock()) {
       return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
     };
     ipcMain.on('theme:get', (event) => { event.returnValue = themeMode(); });
+    ipcMain.on('theme:options', (event) => { event.returnValue = DARK_THEME; });
     nativeTheme.on('updated', () => {
       const mode = themeMode();
       console.log('[theme] 系统切换为', mode);
