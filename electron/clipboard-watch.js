@@ -51,7 +51,8 @@ function startClipboardWatch({ onMeeting, intervalMs = 1500 } = {}) {
     if (url === lastOpened) return;   // 同一场会不重复开窗
     lastOpened = url;
 
-    console.log('[clip] 识别到会议，打开分享窗:', url.replace(/\?.*$/, '?…'));
+    const num = (url.match(/\/share\/(\d{6,})/) || [])[1];
+    console.log('[clip] 识别到会议号', num || '(未识别)', '→ 打开分享窗');
     onMeeting(url);
 
     // 处理完清空剪贴板：否则下次启动又会读到同一段文本，重复进会

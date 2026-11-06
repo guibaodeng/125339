@@ -16,8 +16,10 @@ function extractMeetingUrl(text) {
   const t = String(text || '');
   if (!t.trim()) return null;
 
-  const share = t.match(/https?:\/\/[^\s"'<>）)]*125339\.com\.cn\/share\/[^\s"'<>）)]*/i);
-  if (share) return share[0];
+  // ① 分享链接：只取会议号，然后统一按"会议号"那条流程拼标准地址
+  //    （链接里常带 &random=xxx 之类的参数，去掉更干净，也避免触发客户端拉起逻辑）
+  const share = t.match(/https?:\/\/[^\s"'<>）)]*125339\.com\.cn\/share\/(\d{6,})/i);
+  if (share) return `${SHARE_BASE}/${share[1]}?xlocation=PROD`;
 
   const num = t.match(/移动会议\s*[:：]\s*([0-9][0-9\s]{4,20})/);
   if (num) {
