@@ -744,11 +744,13 @@ conferenceData: { subject, startTime, endTime, conferenceState, ... }
 原生 `dialog.showMessageBox` 在 Linux（GTK）下图标固定在左上角、没法居中，所以提示改用自绘窗口：
 
 ```js
-showNotice({ title: '无法进入这个会议', lines: ['会议号：379814983', '会议不存在'] });
+// 标题就是具体原因，正文只留会议号
+showNotice({ title: '会议不存在', lines: ['会议号：379814983'] });
 ```
 
 - 380×240 无边框、居中、置顶；
 - 图标（圆形 i）、标题、正文、按钮全部水平居中，整块垂直居中；
+- 标题直接用具体原因（`会议不存在` / `会议已结束` / `会议还没开始`），正文只有一行会议号；
 - 支持深色（跟随系统）、Esc/Enter 关闭、点击按钮关闭；
 - 登记为 helper 窗口，不会被 URL 白名单闸门遮住。
 

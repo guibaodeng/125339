@@ -297,8 +297,8 @@ async function runSmoke(ctx, dir) {
   if (process.env.SMOKE_NOTICE) {
     await sleep(9000);
     ctx.showNotice({
-      title: '无法进入这个会议',
-      lines: ['会议号：379814983', '会议不存在'],
+      title: process.env.NOTICE_TITLE || '会议不存在',
+      lines: ['会议号：379814983'],
     });
     await sleep(2500);
     const nw = BrowserWindow.getAllWindows().find((w) => w !== win && w.webContents.getURL().startsWith('data:'));

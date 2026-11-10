@@ -960,23 +960,12 @@ function showNotice({ title, lines = [], okText = '知道了' }) {
   return noticeWin;
 }
 
-/** 会议不可入会时给个提示 */
+/** 会议不可入会时给个提示：标题就是具体原因，正文只留会议号 */
 function notifyMeetingUnavailable(confId, info) {
-  const d = info.detail || {};
-  const lines = [`会议号：${confId}`];
-  if (info.reason === 'ended' || info.reason === 'not-started') {
-    if (d.subject) lines.push(`主题：${d.subject}`);
-    if (d.startTime && d.endTime) lines.push(`时间：${d.startTime} ~ ${d.endTime}`);
-    if (info.reason === 'not-started' && d.startTime) lines.push(`开始时间：${d.startTime}`);
-  } else {
-    lines.push(info.text || '会议不存在、已结束，或当前账号无权查看');
-  }
-  showNotice({
-    title: info.reason === 'ended'
-      ? '这个会议已经结束了'
-      : (info.reason === 'not-started' ? '会议还没开始' : '无法进入这个会议'),
-    lines,
-  });
+  const title = info.reason === 'ended'
+    ? '会议已结束'
+    : (info.reason === 'not-started' ? '会议还没开始' : (info.text || '会议不存在'));
+  showNotice({ title, lines: [`会议号：${confId}`] });
 }
 
 async function resolveJoinName() {
