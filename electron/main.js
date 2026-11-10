@@ -787,6 +787,26 @@ function captureCloudlinkTokens(ses) {
   });
 }
 
+/** 允许提前多少分钟进会（JOIN_EARLY_MIN，默认 0 = 严格按开始时间） */
+const JOIN_EARLY_MS = Math.max(0, Number(process.env.JOIN_EARLY_MIN || 0)) * 60 * 1000;
+
+/**
+ * 判断这场会现在能不能进：
+ *   'ended'       已结束（或被服务端删了）
+ *   'not-started' 还没到开始时间
+ *   ''            可以进
+ */
+function decideJoinable(detail) {
+  const start = parseMeetingTime(detail.startTime);
+  const end = parseMeetingTime(detail.endTime);
+  const state = String(detail.conferenceState || '');
+  const now = Date.now();
+  if (/end|finish/i.test(state)) return 'ended';
+  if (end && end.getTime() < now) return 'ended';
+  if (start && start.getTime() - JOIN_EARLY_MS > now) return 'not-started';
+  return '';
+}
+
 /** 会议时间字符串 "2026-11-06 15:31" → Date（站点按北京时间给） */
 function parseMeetingTime(str) {
   const m = String(str || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
@@ -801,9 +821,13 @@ function parseMeetingTime(str) {
  * 拿不到 token / 网络失败时返回 { ok:true, unknown:true }，不阻塞用户入会。
  */
 async function fetchConfDetail(confId) {
+  // 启动瞬间门户还没发出 /v1 请求，token 可能还没截到：等一会儿（最多 3 秒）
+  for (let i = 0; i < 10 && !cloudlinkToken.access && !cloudlinkToken.auth; i += 1) {
+    await sleep(300);
+  }
   const { access, auth } = cloudlinkToken;
   if (!access && !auth) {
-    console.log('[conf] 还没截到 X-Access-Token，跳过到期检查');
+    console.log('[conf] 还没截到 X-Access-Token，跳过会议状态检查');
     return { ok: true, unknown: true };
   }
   const ses = session.fromPartition(PARTITION);
@@ -828,23 +852,21 @@ async function fetchConfDetail(confId) {
   const d = json.response && json.response.data ? json.response.data.conferenceData : (json.conferenceData || null);
   if (!d) return { ok: false, reason: 'not-found' };
 
-  const end = parseMeetingTime(d.endTime);
-  const start = parseMeetingTime(d.startTime);
-  const state = String(d.conferenceState || '');
-  const ended = (end && end.getTime() < Date.now()) || /end|finish/i.test(state);
+  const verdict = decideJoinable(d);
   console.log('[conf] 会议', confId, '| 主题', d.subject || '?', '|', d.startTime, '→', d.endTime,
-    '| 状态', state, '| 已结束 =', !!ended);
-  return { ok: !ended, reason: ended ? 'ended' : '', detail: d };
+    '| 状态', d.conferenceState || '?', '| 结论 =', verdict || '可入会');
+  return { ok: !verdict, reason: verdict, detail: d };
 }
 
 /** 会议不可入会时给个提示 */
 function notifyMeetingUnavailable(confId, info) {
   const d = info.detail || {};
   const lines = [];
-  if (info.reason === 'ended') {
+  if (info.reason === 'ended' || info.reason === 'not-started') {
     lines.push(`会议号：${confId}`);
     if (d.subject) lines.push(`主题：${d.subject}`);
     if (d.startTime && d.endTime) lines.push(`时间：${d.startTime} ~ ${d.endTime}`);
+    if (info.reason === 'not-started' && d.startTime) lines.push(`开始时间：${d.startTime}`);
   } else {
     lines.push(`会议号：${confId}`);
     lines.push(info.code ? `接口返回：${info.code}` : '会议不存在、已结束，或当前账号无权查看');
@@ -854,7 +876,9 @@ function notifyMeetingUnavailable(confId, info) {
     buttons: ['知道了'],
     defaultId: 0,
     noLink: true,
-    message: info.reason === 'ended' ? '这个会议已经结束了' : '无法进入这个会议',
+    message: info.reason === 'ended'
+      ? '这个会议已经结束了'
+      : (info.reason === 'not-started' ? '会议还没开始' : '无法进入这个会议'),
     detail: lines.join('\n'),
   }).catch(() => {});
 }
@@ -969,7 +993,18 @@ async function getJoinNonce({ allowWindow = true } = {}) {
 }
 
 /** 打开会议窗口：优先用带 nonce 的"已登录入会"地址，取不到 nonce 再退回游客表单 */
-async function openJoinWindow(confId) {
+async function openJoinWindow(confId, { skipCheck = false } = {}) {
+  // ysx:// 和剪贴板都走这里：定时会议还没到点、或已结束，都先拦下来
+  if (!skipCheck) {
+    const info = await fetchConfDetail(confId);
+    if (!info.ok) {
+      console.log('[ysx] 会议不可入会（' + info.reason + '），不打开入会窗口');
+      notifyMeetingUnavailable(confId, info);
+      return null;
+    }
+    if (!info.unknown) console.log('[ysx] 会议详情检查通过，继续入会');
+  }
+
   const nonce = await getJoinNonce().catch(() => '');
   const joinName = (await resolveJoinName().catch(() => '')) || '参会人';
   if (!nonce) console.log('[ysx] 取不到 nonce（可能未登录），退回游客表单，可能被"仅授权用户"拦下');
@@ -1117,17 +1152,8 @@ function startClipboardWatch() {
         openShareWindow(url);
         return;
       }
-      console.log('[clip] 先查会议是否到期，会议号', num);
-      (async () => {
-        const info = await fetchConfDetail(num);
-        if (!info.ok) {
-          console.log('[clip] 会议不可入会，提示用户:', info.reason);
-          notifyMeetingUnavailable(num, info);
-          return;
-        }
-        console.log('[clip] 会议可入会，开始入会，会议号', num);
-        await openJoinWindow(num);
-      })().catch((e) => console.log('[clip] 入会失败:', e.message));
+      console.log('[clip] 直接入会（会先查会议状态），会议号', num);
+      openJoinWindow(num).catch((e) => console.log('[clip] 入会失败:', e.message));
     },
     intervalMs: Number(process.env.CLIP_INTERVAL_MS || 1500),
   });

@@ -651,12 +651,28 @@ if (isShareUrl(url)) {
 conferenceData: { subject, startTime, endTime, conferenceState, ... }
 ```
 
-判断规则：
+判断规则（`decideJoinable()`）：
 
-- 接口返回 `error_code`（如 `MMC.111070005 CONF_DATA_NOT_FOUND`）→ 会议已结束/不存在，弹提示不进入；
-- `endTime` 已过 或 `conferenceState` 含 end/finish → 弹提示；
-- 其它情况 → 正常入会；
-- 拿不到 token / 网络失败 → **不阻塞**，直接入会。
+| 条件 | 结论 | 处理 |
+| --- | --- | --- |
+| 接口返回 `error_code`（如 `MMC.111070005 CONF_DATA_NOT_FOUND`） | `not-found` | 弹提示，不进入 |
+| `conferenceState` 含 end/finish | `ended` | 弹提示 |
+| `endTime` 已过 | `ended` | 弹提示 |
+| **`startTime` 还没到** | `not-started` | 弹「会议还没开始」 |
+| 其它 | 可入会 | 正常入会 |
+| 拿不到 token / 网络失败 | unknown | **不阻塞**，照常入会 |
+
+检查放在 `openJoinWindow()` 里，所以 **ysx:// 唤起和剪贴板两条路都会先查**。
+定时会议早到会被拦下：
+
+```
+[ysx] 收到外部链接: ysx://...num=377200432
+[conf] confDetail 返回错误: MMC.111070005 CONF_DATA_NOT_FOUND
+[ysx] 会议不可入会（not-found），不打开入会窗口
+```
+
+想让「提前几分钟进会」放行：`JOIN_EARLY_MIN=5`（默认 0，严格按开始时间）。
+启动瞬间门户还没发出 `/v1` 请求时，会先等最多 3 秒拿 token，再决定。
 
 实测（拿一个昨天的会议号）：
 
