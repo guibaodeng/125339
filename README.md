@@ -676,6 +676,24 @@ if (isShareUrl(url)) {
 15:14:13.451  [url] inpage .../conference-list                   ← 遮罩撤掉
 ```
 
+## 会议页样式微调
+
+会议页（`/webrtc`）里视频区原本带内边距和圆角，画面没有铺满。preload 里覆盖掉：
+
+```css
+#main-video-container { padding: 0 !important; border-radius: 0 !important; }
+#main-video-container + div { border-radius: 0 !important; margin-left: 0 !important; }
+#video-module { padding: 0 !important; }
+```
+
+实测（注入带内联样式的同 id 元素后读计算值）：
+
+```
+#main-video-container  padding 12px → 0px   border-radius 16px → 0px
++ div（下一个）         border-radius 20px → 0px   margin-left 40px → 0px
+#video-module          padding 8px → 0px    margin 保持 2px 不变
+```
+
 ## 深色模式：Dark Reader 跟随系统
 
 用 [`darkreader`](https://www.npmjs.com/package/darkreader) 而不是自己写 CSS 反色：

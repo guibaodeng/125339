@@ -222,6 +222,20 @@ if (location.origin === WWW_ORIGIN) {
 
 
 // ---------------------------------------------------------------------------
+// 会议页（/webrtc）：去掉视频区的内边距和圆角，让画面铺满
+// ---------------------------------------------------------------------------
+if (location.pathname.startsWith('/webrtc')) {
+  injectCss(`
+    /* 主视频容器：取消 padding 与 border-radius */
+    #main-video-container { padding: 0 !important; border-radius: 0 !important; }
+    /* 它后面紧跟的那个 div：取消圆角与左边距 */
+    #main-video-container + div { border-radius: 0 !important; margin-left: 0 !important; }
+    /* 视频模块：取消 padding */
+    #video-module { padding: 0 !important; }
+  `);
+}
+
+// ---------------------------------------------------------------------------
 // 会议入会页（conf.125339.com.cn/webrtc/?customer=chinamobile...）：
 // 页面已经填好会议信息时，「加入会议」按钮会变成可点，这里自动点它
 // ---------------------------------------------------------------------------
