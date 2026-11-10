@@ -643,6 +643,30 @@ if (isShareUrl(url)) {
 - 链接里带的 `&random=xxx` 等参数会被丢掉，走和"只有会议号"完全相同的流程；
 - 分享页里 `ysx://` 这类外部协议会被拦掉，避免弹系统协议对话框。
 
+**入会前先查是否到期**：拿到会议号后先调
+`GET /v1/mmc/management/conferences/confDetail?conferenceID=xxx`
+（华为 CloudLink 官方「查询会议详情」接口，`X-Access-Token` 取自站点请求头）：
+
+```
+conferenceData: { subject, startTime, endTime, conferenceState, ... }
+```
+
+判断规则：
+
+- 接口返回 `error_code`（如 `MMC.111070005 CONF_DATA_NOT_FOUND`）→ 会议已结束/不存在，弹提示不进入；
+- `endTime` 已过 或 `conferenceState` 含 end/finish → 弹提示；
+- 其它情况 → 正常入会；
+- 拿不到 token / 网络失败 → **不阻塞**，直接入会。
+
+实测（拿一个昨天的会议号）：
+
+```
+[clip] 识别到会议号 377200432
+[clip] 先查会议是否到期，会议号 377200432
+[conf] confDetail 返回错误: MMC.111070005 CONF_DATA_NOT_FOUND
+[clip] 会议不可入会，提示用户: not-found
+```
+
 **入会方式**：默认直接走壳子的入会通道——解析出会议号后打开
 `conf.125339.com.cn/webrtc/?customer=chinamobile&nonce=...`，自动填会议号 + 账号姓名并点「加入会议」，
 **不依赖分享页的登录态**。想恢复成"打开分享页"：`CLIP_MODE=share`。

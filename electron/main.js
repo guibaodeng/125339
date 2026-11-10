@@ -777,7 +777,7 @@ let cloudlinkToken = { access: '', auth: '' };
 let joinNameCache = '';
 
 function captureCloudlinkTokens(ses) {
-  ses.webRequest.onBeforeSendHeaders({ urls: [`${CONF_ORIGIN}/v1/usg/*`] }, (details, callback) => {
+  ses.webRequest.onBeforeSendHeaders({ urls: [`${CONF_ORIGIN}/v1/*`] }, (details, callback) => {
     const h = details.requestHeaders || {};
     const access = h['X-Access-Token'] || h['x-access-token'];
     const auth = h['x-auth-token'] || h['X-Auth-Token'];
@@ -785,6 +785,78 @@ function captureCloudlinkTokens(ses) {
     if (auth) cloudlinkToken.auth = auth;
     callback({ requestHeaders: h });
   });
+}
+
+/** 会议时间字符串 "2026-11-06 15:31" → Date（站点按北京时间给） */
+function parseMeetingTime(str) {
+  const m = String(str || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * 查会议详情：GET /v1/mmc/management/conferences/confDetail?conferenceID=xxx
+ * 返回 { ok:false, reason, detail } 表示不可入会；{ ok:true } 表示可入会。
+ * 拿不到 token / 网络失败时返回 { ok:true, unknown:true }，不阻塞用户入会。
+ */
+async function fetchConfDetail(confId) {
+  const { access, auth } = cloudlinkToken;
+  if (!access && !auth) {
+    console.log('[conf] 还没截到 X-Access-Token，跳过到期检查');
+    return { ok: true, unknown: true };
+  }
+  const ses = session.fromPartition(PARTITION);
+  const url = `${CONF_ORIGIN}/v1/mmc/management/conferences/confDetail?conferenceID=${encodeURIComponent(confId)}`;
+  let json = null;
+  try {
+    const res = await ses.fetch(url, {
+      headers: { 'X-Access-Token': access, 'x-auth-token': auth, 'Content-Type': 'application/json' },
+    });
+    json = await res.json().catch(() => null);
+    if (!json) return { ok: true, unknown: true };
+  } catch (e) {
+    console.log('[conf] 查询会议详情失败:', e.message);
+    return { ok: true, unknown: true };
+  }
+
+  if (json.error_code) {
+    // 会议不存在 / 已结束 / 无权限，站点都会用 error_code 表达
+    console.log('[conf] confDetail 返回错误:', json.error_code, json.error_msg);
+    return { ok: false, reason: 'not-found', code: json.error_code, msg: json.error_msg };
+  }
+  const d = json.response && json.response.data ? json.response.data.conferenceData : (json.conferenceData || null);
+  if (!d) return { ok: false, reason: 'not-found' };
+
+  const end = parseMeetingTime(d.endTime);
+  const start = parseMeetingTime(d.startTime);
+  const state = String(d.conferenceState || '');
+  const ended = (end && end.getTime() < Date.now()) || /end|finish/i.test(state);
+  console.log('[conf] 会议', confId, '| 主题', d.subject || '?', '|', d.startTime, '→', d.endTime,
+    '| 状态', state, '| 已结束 =', !!ended);
+  return { ok: !ended, reason: ended ? 'ended' : '', detail: d };
+}
+
+/** 会议不可入会时给个提示 */
+function notifyMeetingUnavailable(confId, info) {
+  const d = info.detail || {};
+  const lines = [];
+  if (info.reason === 'ended') {
+    lines.push(`会议号：${confId}`);
+    if (d.subject) lines.push(`主题：${d.subject}`);
+    if (d.startTime && d.endTime) lines.push(`时间：${d.startTime} ~ ${d.endTime}`);
+  } else {
+    lines.push(`会议号：${confId}`);
+    lines.push(info.code ? `接口返回：${info.code}` : '会议不存在、已结束，或当前账号无权查看');
+  }
+  dialog.showMessageBox({
+    type: 'info',
+    buttons: ['知道了'],
+    defaultId: 0,
+    noLink: true,
+    message: info.reason === 'ended' ? '这个会议已经结束了' : '无法进入这个会议',
+    detail: lines.join('\n'),
+  }).catch(() => {});
 }
 
 async function resolveJoinName() {
@@ -1045,8 +1117,17 @@ function startClipboardWatch() {
         openShareWindow(url);
         return;
       }
-      console.log('[clip] 直接入会，会议号', num);
-      openJoinWindow(num).catch((e) => console.log('[clip] 入会失败:', e.message));
+      console.log('[clip] 先查会议是否到期，会议号', num);
+      (async () => {
+        const info = await fetchConfDetail(num);
+        if (!info.ok) {
+          console.log('[clip] 会议不可入会，提示用户:', info.reason);
+          notifyMeetingUnavailable(num, info);
+          return;
+        }
+        console.log('[clip] 会议可入会，开始入会，会议号', num);
+        await openJoinWindow(num);
+      })().catch((e) => console.log('[clip] 入会失败:', e.message));
     },
     intervalMs: Number(process.env.CLIP_INTERVAL_MS || 1500),
   });
