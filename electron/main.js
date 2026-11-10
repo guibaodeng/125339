@@ -913,7 +913,6 @@ function notifyMeetingUnavailable(confId, info) {
   } else {
     lines.push(`会议号：${confId}`);
     lines.push(info.text || '会议不存在、已结束，或当前账号无权查看');
-    if (info.code) lines.push(`（${info.code}）`);
   }
   dialog.showMessageBox({
     type: 'info',
