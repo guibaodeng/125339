@@ -168,6 +168,26 @@ function sweepLoginPage() {
   );
   hide(footers[footers.length - 1]);
 
+  // ⑤ 风控提示：「系统检测到您的账号登录环境有变化，请使用手机号验证后再进行登录！」
+  //    按文案匹配，取"只包含这段文字"的最外层容器整块隐藏
+  const RISK_TEXT = '系统检测到您的账号登录环境有变化';
+  const hits = [...document.querySelectorAll('div, p, span, section, aside')]
+    .filter((el) => (el.textContent || '').includes(RISK_TEXT));
+  if (hits.length) {
+    let el = hits[hits.length - 1];               // 最深的那个
+    while (el && el.parentElement && el !== document.body) {
+      const ptext = (el.parentElement.textContent || '').replace(/\s+/g, '');
+      const etext = (el.textContent || '').replace(/\s+/g, '');
+      // 往上找到"文本没有被稀释"的最大容器
+      if (ptext !== etext) break;
+      el = el.parentElement;
+    }
+    if (el && el !== document.body) {
+      hide(el);
+      console.log('[login] 已隐藏风控提示');
+    }
+  }
+
   // ⑤ 量出卡片尺寸，交给主进程把窗口收成刚好包住它
   reportCardSize();
 }
