@@ -739,6 +739,21 @@ conferenceData: { subject, startTime, endTime, conferenceState, ... }
 15:14:13.451  [url] inpage .../conference-list                   ← 遮罩撤掉
 ```
 
+## 自绘提示窗
+
+原生 `dialog.showMessageBox` 在 Linux（GTK）下图标固定在左上角、没法居中，所以提示改用自绘窗口：
+
+```js
+showNotice({ title: '无法进入这个会议', lines: ['会议号：379814983', '会议不存在'] });
+```
+
+- 380×240 无边框、居中、置顶；
+- 图标（圆形 i）、标题、正文、按钮全部水平居中，整块垂直居中；
+- 支持深色（跟随系统）、Esc/Enter 关闭、点击按钮关闭；
+- 登记为 helper 窗口，不会被 URL 白名单闸门遮住。
+
+![提示窗](screenshots/notice.png)
+
 ## 登录页风控提示
 
 登录页如果出现：

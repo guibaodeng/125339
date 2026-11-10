@@ -901,29 +901,82 @@ async function fetchConfDetail(confId) {
   return { ok: !verdict, reason: verdict, detail: d };
 }
 
+/** 自绘提示窗：原生 GTK 弹窗的图标固定在左上角，改不了位置，所以自己画 */
+let noticeWin = null;
+
+function showNotice({ title, lines = [], okText = '知道了' }) {
+  const dark = nativeTheme.shouldUseDarkColors;
+  const bg = dark ? '#1f1f1f' : '#ffffff';
+  const fg = dark ? '#e8e8e8' : '#1f2329';
+  const sub = dark ? '#a8a8a8' : '#5b6068';
+  const line = dark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.08)';
+  const body = lines.map((t) => `<div class="line">${String(t).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</div>`).join('');
+  const html = `<!doctype html><meta charset="utf-8"><style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{background:${bg};color:${fg};font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+         display:flex;flex-direction:column;align-items:center;justify-content:center;
+         -webkit-app-region:drag;user-select:none;padding:18px}
+    .icon{width:44px;height:44px;border-radius:50%;border:2px solid ${fg};color:${fg};
+          display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;margin-bottom:12px}
+    .title{font-size:16px;font-weight:600;margin-bottom:10px;text-align:center}
+    .lines{text-align:center;color:${sub};font-size:13px;max-width:320px}
+    .line{margin:2px 0;word-break:break-all}
+    .btn{margin-top:16px;-webkit-app-region:no-drag;cursor:pointer;border:0;border-radius:6px;
+         padding:7px 26px;font-size:14px;color:#fff;background:#1677ff}
+    .btn:hover{background:#0e5fd8}
+  </style>
+  <div class="icon">i</div>
+  <div class="title">${title}</div>
+  <div class="lines">${body}</div>
+  <button class="btn" id="ok">${okText}</button>
+  <script>
+    const close = () => window.close();
+    document.getElementById('ok').addEventListener('click', close);
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' || e.key === 'Enter') close(); });
+    window.focus();
+  </script>`;
+
+  if (noticeWin && !noticeWin.isDestroyed()) noticeWin.destroy();
+  noticeWin = new BrowserWindow({
+    width: 380,
+    height: 240,
+    frame: false,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    alwaysOnTop: true,
+    center: true,
+    show: false,
+    backgroundColor: bg,
+    title: '提示',
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  helperWindows.add(noticeWin);   // 自绘提示窗，别被 URL 白名单闸门遮住
+  noticeWin.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`).catch(() => {});
+  noticeWin.once('ready-to-show', () => { if (noticeWin && !noticeWin.isDestroyed()) noticeWin.show(); });
+  noticeWin.on('closed', () => { noticeWin = null; });
+  return noticeWin;
+}
+
 /** 会议不可入会时给个提示 */
 function notifyMeetingUnavailable(confId, info) {
   const d = info.detail || {};
-  const lines = [];
+  const lines = [`会议号：${confId}`];
   if (info.reason === 'ended' || info.reason === 'not-started') {
-    lines.push(`会议号：${confId}`);
     if (d.subject) lines.push(`主题：${d.subject}`);
     if (d.startTime && d.endTime) lines.push(`时间：${d.startTime} ~ ${d.endTime}`);
     if (info.reason === 'not-started' && d.startTime) lines.push(`开始时间：${d.startTime}`);
   } else {
-    lines.push(`会议号：${confId}`);
     lines.push(info.text || '会议不存在、已结束，或当前账号无权查看');
   }
-  dialog.showMessageBox({
-    type: 'info',
-    buttons: ['知道了'],
-    defaultId: 0,
-    noLink: true,
-    message: info.reason === 'ended'
+  showNotice({
+    title: info.reason === 'ended'
       ? '这个会议已经结束了'
       : (info.reason === 'not-started' ? '会议还没开始' : '无法进入这个会议'),
-    detail: lines.join('\n'),
-  }).catch(() => {});
+    lines,
+  });
 }
 
 async function resolveJoinName() {
@@ -1803,6 +1856,7 @@ if (!app.requestSingleInstanceLock()) {
         animateBounds: (size) => animateBounds(size),
         getPortalEntryUrl: () => portalEntryUrl,
         openShareWindow: (u) => openShareWindow(u),
+        showNotice: (opts) => showNotice(opts),
         quitApp: () => quitApp(),
       }, SHOT_DIR);
     }

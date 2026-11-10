@@ -294,6 +294,29 @@ async function runSmoke(ctx, dir) {
     return app.quit();
   }
 
+  if (process.env.SMOKE_NOTICE) {
+    await sleep(9000);
+    ctx.showNotice({
+      title: '无法进入这个会议',
+      lines: ['会议号：379814983', '会议不存在'],
+    });
+    await sleep(2500);
+    const nw = BrowserWindow.getAllWindows().find((w) => w !== win && w.webContents.getURL().startsWith('data:'));
+    if (nw) {
+      const img = await nw.capturePage().catch((e) => { console.log('[test] 截图失败', e.message); return null; });
+      if (img) {
+        require('node:fs').mkdirSync(dir, { recursive: true });
+        require('node:fs').writeFileSync(`${dir}/notice.png`, img.toPNG());
+        console.log('[test] 提示窗截图 notice.png');
+      }
+      console.log('[test] 提示窗可见 =', nw.isVisible(), '| URL 前缀', nw.webContents.getURL().slice(0, 30));
+    } else {
+      console.log('[test] 没找到提示窗');
+    }
+    ctx.setQuitting();
+    return app.quit();
+  }
+
   if (process.env.SMOKE_LOGOUT) {
     await sleep(6000);
     ctx.setPhase('main'); // 模拟"已登录在门户"，让退出处理真的走一遍
@@ -322,6 +345,12 @@ async function runSmoke(ctx, dir) {
       ).catch(() => '(读不到)');
       console.log(`[live] 其它窗口 #${w.id} ${b.width}x${b.height} 可见=${w.isVisible()} url=${w.webContents.getURL().slice(0, 90)}`);
       console.log(`[live]   内容: ${text}`);
+      const img = await w.capturePage().catch(() => null);
+      if (img) {
+        require('node:fs').mkdirSync(dir, { recursive: true });
+        require('node:fs').writeFileSync(`${dir}/win-${w.id}.png`, img.toPNG());
+        console.log(`[live]   截图 win-${w.id}.png`);
+      }
     }
     return app.quit();
   }
