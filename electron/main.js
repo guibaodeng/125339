@@ -787,6 +787,43 @@ function captureCloudlinkTokens(ses) {
   });
 }
 
+/** 华为云会议错误码 → 官方中文描述（节选常用项，来源：官方错误码表） */
+const MEETING_ERR_TEXT = {
+  111070001: '请求错误',
+  111070002: '权限不足',
+  111070003: '系统处理失败',
+  111070004: '校验失败',
+  111070005: '会议不存在',
+  111070006: '个人云会议室不存在',
+  111070009: '会议密码不能为空',
+  111070010: '权限不足，无法查看会议',
+  111071004: 'VMR 会议不允许来宾在主持人入会前入会',
+  111071011: 'VMR 会议未到准备时间点',
+  111071058: '当前会议还未召开，请耐心等待',
+  111071064: 'VMR 会议冲突，当前已有会议正在召开',
+  111071072: '会议已经结束',
+  111071073: '会议不允许匿名用户呼入',
+  111071074: '会议只允许企业内用户呼入',
+  111071075: '会议只允许被邀请用户呼入',
+  111071077: '会议只允许被邀请或企业内用户呼入',
+  111071091: '密码错误',
+  111071094: '会议不允许观众入会',
+};
+
+/** "MMC.111070005" → { num:111070005, text:'会议不存在' } */
+function explainMeetingError(code) {
+  const num = Number((String(code || '').match(/(\d{6,})/) || [])[1] || 0);
+  return { num, text: MEETING_ERR_TEXT[num] || '' };
+}
+
+/** 错误码归类：未开始 / 已结束 / 其它 */
+function errorReason(num) {
+  if (num === 111071058 || num === 111071011 || num === 111071004) return 'not-started';
+  if (num === 111071072) return 'ended';
+  if (num === 111070005) return 'not-found';
+  return '';
+}
+
 /** 允许提前多少分钟进会（JOIN_EARLY_MIN，默认 0 = 严格按开始时间） */
 const JOIN_EARLY_MS = Math.max(0, Number(process.env.JOIN_EARLY_MIN || 0)) * 60 * 1000;
 
@@ -845,9 +882,15 @@ async function fetchConfDetail(confId) {
   }
 
   if (json.error_code) {
-    // 会议不存在 / 已结束 / 无权限，站点都会用 error_code 表达
-    console.log('[conf] confDetail 返回错误:', json.error_code, json.error_msg);
-    return { ok: false, reason: 'not-found', code: json.error_code, msg: json.error_msg };
+    // 会议不存在 / 已结束 / 未开始 / 无权限，站点都用 error_code 表达
+    const { num, text } = explainMeetingError(json.error_code);
+    console.log('[conf] confDetail 返回错误:', json.error_code, '→', text || json.error_msg);
+    return {
+      ok: false,
+      reason: errorReason(num) || 'not-found',
+      code: json.error_code,
+      text: text || json.error_msg,
+    };
   }
   const d = json.response && json.response.data ? json.response.data.conferenceData : (json.conferenceData || null);
   if (!d) return { ok: false, reason: 'not-found' };
@@ -869,7 +912,8 @@ function notifyMeetingUnavailable(confId, info) {
     if (info.reason === 'not-started' && d.startTime) lines.push(`开始时间：${d.startTime}`);
   } else {
     lines.push(`会议号：${confId}`);
-    lines.push(info.code ? `接口返回：${info.code}` : '会议不存在、已结束，或当前账号无权查看');
+    lines.push(info.text || '会议不存在、已结束，或当前账号无权查看');
+    if (info.code) lines.push(`（${info.code}）`);
   }
   dialog.showMessageBox({
     type: 'info',
