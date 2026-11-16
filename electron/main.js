@@ -1360,7 +1360,7 @@ async function quitApp() {
 function refreshTrayMenu() {
   if (!tray) return;
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: '显示主窗口', click: showMainWindow },
+    { label: '显示', click: showMainWindow },
     { type: 'separator' },
     { label: '关闭', click: () => { console.log('[tray] 收到「关闭」点击'); quitApp(); } },
   ]));
