@@ -14,7 +14,7 @@
  */
 
 const {
-  app, BrowserWindow, session, shell, Menu, nativeTheme,
+  app, BrowserWindow, session, shell, Menu, nativeTheme, Tray, nativeImage,
   screen, ipcMain, safeStorage, dialog, clipboard,
 } = require('electron');
 const { installDisplayMediaHandler } = require('./display-media');
@@ -1358,14 +1358,30 @@ async function quitApp() {
 //   这里把托盘整体关掉；需要恢复时把下面两个函数体还原即可。
 // ---------------------------------------------------------------------------
 function refreshTrayMenu() {
-  // 已停用：不再构建托盘菜单
-  return;
+  if (!tray) return;
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: '显示主窗口', click: showMainWindow },
+    { type: 'separator' },
+    { label: '关闭', click: () => { console.log('[tray] 收到「关闭」点击'); quitApp(); } },
+  ]));
 }
 
 function createTray() {
-  // 已停用：不创建托盘图标
-  console.log('[tray] 托盘已停用（避免退出后鼠标转圈）');
-  return;
+  try {
+    const iconPath = path.join(__dirname, '..', 'assets', 'tray.png');
+    const icon = nativeImage.createFromPath(iconPath);
+    tray = new Tray(icon.isEmpty() ? nativeImage.createEmpty() : icon);
+    tray.setToolTip('云视讯');
+    refreshTrayMenu();
+    // 左键点图标：显示 / 隐藏来回切
+    tray.on('click', () => {
+      if (win && !win.isDestroyed() && win.isVisible()) win.hide();
+      else showMainWindow();
+    });
+    console.log('[tray] 已创建');
+  } catch (e) {
+    console.error('[tray] 创建失败:', e.message);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1391,30 +1407,33 @@ function createWindow() {
     if (isQuitting) return;
     event.preventDefault();
 
-    // 托盘已停用：关窗口就是退出程序（否则窗口消失后没有任何入口能唤回）。
-    // 会议中先确认一下，避免误关导致会议中断。
-    // 注意必须用异步对话框：close 事件里调 showMessageBoxSync 会阻塞主线程，
-    // 表现就是"点关闭没反应"。
+    // 关窗口 = 收进托盘（进程继续跑）。会议中再问一次，避免误关把会议掐掉。
+    // 注意必须用异步对话框：close 事件里调 showMessageBoxSync 会阻塞主线程。
     const inMeeting = !leavingMeeting && /\/webrtc/i.test(win.webContents.getURL());
-    if (!inMeeting) {
-      quitApp();
+    if (inMeeting) {
+      if (closePrompting) return;
+      closePrompting = true;
+      dialog.showMessageBox(win, {
+        type: 'question',
+        buttons: ['退出会议并关闭', '收进托盘继续', '取消'],
+        defaultId: 1,
+        cancelId: 2,
+        noLink: true,
+        message: '当前在会议中',
+        detail: '关闭窗口会结束会议。选择"收进托盘"可以继续开会，之后点托盘图标唤回。',
+      }).then(({ response }) => {
+        closePrompting = false;
+        if (response === 0) quitApp();
+        else if (response === 1) { win.hide(); console.log('[window] 已收进托盘（会议仍在进行）'); }
+      }).catch(() => {
+        closePrompting = false;
+        win.hide();
+      });
       return;
     }
 
-    if (closePrompting) return;
-    closePrompting = true;
-    dialog.showMessageBox(win, {
-      type: 'question',
-      buttons: ['退出会议并关闭', '取消'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-      message: '当前在会议中',
-      detail: '关闭窗口会结束会议并退出程序。',
-    }).then(({ response }) => {
-      closePrompting = false;
-      if (response === 0) quitApp();
-    }).catch(() => { closePrompting = false; });
+    win.hide();
+    console.log('[window] 已收进托盘，进程继续运行');
   });
   win.on('closed', () => { stopPolling(); shown = false; win = null; });
 

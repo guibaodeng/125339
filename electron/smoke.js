@@ -294,6 +294,20 @@ async function runSmoke(ctx, dir) {
     return app.quit();
   }
 
+  if (process.env.SMOKE_CLOSETRAY) {
+    await sleep(9000);
+    console.log('[test] 关闭前 可见 =', win.isVisible());
+    win.close();                       // 模拟点窗口 X
+    await sleep(1500);
+    console.log('[test] 关闭后 可见 =', win.isVisible(), '| 窗口未被销毁 =', !win.isDestroyed());
+    // 模拟"点托盘图标唤回"
+    win.show();
+    await sleep(800);
+    console.log('[test] 唤回后 可见 =', win.isVisible());
+    ctx.setQuitting();
+    return app.quit();
+  }
+
   if (process.env.SMOKE_NOTICE) {
     await sleep(9000);
     ctx.showNotice({
