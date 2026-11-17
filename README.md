@@ -681,7 +681,8 @@ conferenceData: { subject, startTime, endTime, conferenceState, ... }
 | `endTime` 已过 | `ended` | 弹提示 |
 | **`startTime` 还没到** | `not-started` | 弹「会议还没开始」 |
 | 其它 | 可入会 | 正常入会 |
-| 拿不到 token / 网络失败 | unknown | **不阻塞**，照常入会 |
+| **权限不足 / 未归类错误码** | unknown | **忽略检查，照常入会** |
+| 拿不到 token / 网络失败 | unknown | 不阻塞，照常入会 |
 
 检查放在 `openJoinWindow()` 里，所以 **ysx:// 唤起和剪贴板两条路都会先查**。
 定时会议早到会被拦下：
@@ -708,6 +709,15 @@ conferenceData: { subject, startTime, endTime, conferenceState, ... }
 | `111071073` | 会议不允许匿名用户呼入 | — |
 | `111071074/111071075/111071077` | 只允许企业内/被邀请用户呼入 | — |
 | `111071091` | 密码错误 | — |
+
+权限不足类（`111070002` 权限不足、`111070010` 权限不足无法查看会议、`111070004` 校验失败）
+以及任何未归类的错误码（如 `MMC.118000001 USER_TOKEN_AUTH_FAILED`）都**不拦**——
+用户可能本来就能入会，只是查不了详情：
+
+```
+[conf] 查询被拒（权限不足，无法查看会议），忽略检查继续入会
+[ysx] 入会地址 (带 nonce，已登录) 会议号 374788682
+```
 
 来源：[华为云会议 错误码](https://support.huaweicloud.com/sdkreference-meeting/toctopics/zh-cn_topic_0000001764490664.html)。
 日志里会同时给出原文和解释：

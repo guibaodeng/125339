@@ -816,6 +816,9 @@ function explainMeetingError(code) {
   return { num, text: MEETING_ERR_TEXT[num] || '' };
 }
 
+/** 这些错误码说明"不能查/无权限看"，但用户本身可能能入会，忽略掉按流程走 */
+const PERMISSION_LIKE = new Set([111070002, 111070010, 111070004]);
+
 /** 错误码归类：未开始 / 已结束 / 其它 */
 function errorReason(num) {
   if (num === 111071058 || num === 111071011 || num === 111071004) return 'not-started';
@@ -882,18 +885,27 @@ async function fetchConfDetail(confId) {
   }
 
   if (json.error_code) {
-    // 会议不存在 / 已结束 / 未开始 / 无权限，站点都用 error_code 表达
     const { num, text } = explainMeetingError(json.error_code);
+    const verdict = errorReason(num);
+
+    // 权限不足：不拦，照常入会（用户可能本来就有入会权限，只是不能查详情）
+    if (PERMISSION_LIKE.has(num)) {
+      console.log('[conf] 查询被拒（' + (text || json.error_code) + '），忽略检查继续入会');
+      return { ok: true, unknown: true };
+    }
+    // 只有明确的"会议不存在/已结束/未开始"才拦下来
+    if (!verdict) {
+      console.log('[conf] confDetail 返回未归类错误（' + json.error_code + '），忽略检查继续入会');
+      return { ok: true, unknown: true };
+    }
     console.log('[conf] confDetail 返回错误:', json.error_code, '→', text || json.error_msg);
-    return {
-      ok: false,
-      reason: errorReason(num) || 'not-found',
-      code: json.error_code,
-      text: text || json.error_msg,
-    };
+    return { ok: false, reason: verdict, code: json.error_code, text: text || json.error_msg };
   }
   const d = json.response && json.response.data ? json.response.data.conferenceData : (json.conferenceData || null);
-  if (!d) return { ok: false, reason: 'not-found' };
+  if (!d) {
+    console.log('[conf] confDetail 没有返回 conferenceData，忽略检查继续入会');
+    return { ok: true, unknown: true };
+  }
 
   const verdict = decideJoinable(d);
   console.log('[conf] 会议', confId, '| 主题', d.subject || '?', '|', d.startTime, '→', d.endTime,
